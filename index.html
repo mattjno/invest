@@ -98,13 +98,65 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospac
 .nb .ic{font-size:18px;line-height:1}
 .nb.active{color:var(–amb)}
 .pnl{display:none}.pnl.active{display:block}
+/* ── GANTT ── */
+.gantt-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.gantt-table{border-collapse:collapse;min-width:100%}
+.gantt-table th{font-size:7px;text-transform:uppercase;letter-spacing:.08em;color:var(–t3);padding:0 3px 5px;text-align:center;white-space:nowrap;font-weight:400}
+.gantt-table th.row-lbl{text-align:left;width:30px;padding-right:6px}
+.gantt-table td{padding:1px 2px}
+.g-cell{width:22px;height:20px;border-radius:2px;display:block;cursor:pointer;transition:filter .15s}
+.g-cell:hover,.g-cell.active{filter:brightness(1.3);outline:1.5px solid rgba(255,255,255,.4)}
+.g-empty{width:22px;height:20px;display:block}
+.g-deployed{width:22px;height:20px;border-radius:2px;display:block;background:var(–border);cursor:default}
+.g-label{font-size:8px;color:var(–t2);padding:2px 6px 2px 0;text-align:left;white-space:nowrap;vertical-align:middle;font-weight:500}
+
+/* ── GANTT TOOLTIP ── */
+.g-tip{
+position:fixed;left:50%;transform:translateX(-50%);
+background:var(–nav-bg);border:1px solid var(–border);
+border-radius:4px;padding:12px 14px;z-index:200;
+min-width:220px;max-width:290px;
+box-shadow:0 4px 24px rgba(0,0,0,.35);
+pointer-events:none;transition:opacity .15s;
+}
+.g-tip.hidden{opacity:0;pointer-events:none}
+.g-tip-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.g-tip-lbl{font-family:‘IBM Plex Sans’,sans-serif;font-size:13px;font-weight:600;color:var(–white)}
+.g-tip-sub{font-size:8px;color:var(–t2);text-transform:uppercase;letter-spacing:.08em}
+.g-tip-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.g-tip-key{font-size:9px;color:var(–t3);text-transform:uppercase;letter-spacing:.08em}
+.g-tip-val{font-size:11px;font-weight:500;color:var(–text)}
+/* Sparkline inside tooltip */
+.g-spark{display:flex;align-items:flex-end;gap:2px;height:28px;margin-top:10px;padding-top:8px;border-top:1px solid var(–border)}
+.g-spark-bar{flex:1;border-radius:1px;min-height:2px;transition:height .2s}
+.g-spark-lbl{display:flex;justify-content:space-between;margin-top:3px}
+.g-spark-ml{font-size:7px;color:var(–t3);flex:1;text-align:center}
+.g-tip-close{font-size:16px;color:var(–t3);cursor:pointer;pointer-events:all;line-height:1;padding:2px 0 2px 8px}
 </style>
 
 </head>
 <body>
 
+<!-- GANTT TOOLTIP -->
+
+<div class="g-tip hidden" id="gTip">
+  <div class="g-tip-header">
+    <div>
+      <div class="g-tip-lbl" id="gTipLbl">—</div>
+      <div class="g-tip-sub" id="gTipSub">—</div>
+    </div>
+    <span class="g-tip-close" onclick="closeGTip()">✕</span>
+  </div>
+  <div class="g-tip-row"><span class="g-tip-key">Restant</span><span class="g-tip-val" id="gTipRem">—</span></div>
+  <div class="g-tip-row"><span class="g-tip-key">Âge</span><span class="g-tip-val" id="gTipAge">—</span></div>
+  <div class="g-tip-row"><span class="g-tip-key">% déployé</span><span class="g-tip-val" id="gTipDep">—</span></div>
+  <div class="g-tip-row"><span class="g-tip-key">Statut</span><span class="g-tip-val" id="gTipStatus">—</span></div>
+  <div style="font-size:8px;color:var(--t3);margin-top:9px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">Évolution — restant dans la file (M€)</div>
+  <div class="g-spark" id="gTipSpark"></div>
+  <div class="g-spark-lbl" id="gTipSparkLbl"></div>
+</div>
+
 <div class="hdr">
-  <div style="display:flex;align-items:baseline">
     <div class="hdr-logo">REMAKE LIVE</div>
     <div class="hdr-sub">FIFO 2025</div>
   </div>
@@ -130,6 +182,17 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospac
 ```
 <div class="sec" style="border-top:none;padding-top:10px">Cash drag — capital âgé de plus de 3 mois dans la file</div>
 <div class="drag-score" id="dragWidget"></div>
+
+<div class="sec">Vieillissement des tranches — chaque ligne = une collecte, chaque colonne = mois</div>
+<div style="background:var(--panel);border-bottom:1px solid var(--border);padding:12px 14px;transition:background .25s">
+  <div id="ganttWidget"></div>
+  <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:5px;font-size:8px;color:var(--t2)"><span style="display:inline-block;width:10px;height:10px;background:rgba(76,175,125,.75);border-radius:1px"></span>0–1 mois</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:8px;color:var(--t2)"><span style="display:inline-block;width:10px;height:10px;background:rgba(160,190,70,.8);border-radius:1px"></span>1–2 mois</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:8px;color:var(--t2)"><span style="display:inline-block;width:10px;height:10px;background:rgba(240,165,0,.85);border-radius:1px"></span>2–3 mois</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:8px;color:var(--t2)"><span style="display:inline-block;width:10px;height:10px;background:rgba(224,80,80,.85);border-radius:1px"></span>≥ 3 mois (drag)</div>
+  </div>
+</div>
 
 <div class="sec">Délai FIFO mensuel vs seuil jouissance 90J</div>
 <div class="chart-block"><canvas id="cDelay" height="110"></canvas></div>
@@ -350,8 +413,120 @@ function buildDragWidget(){
 buildDragWidget();
 
 // ══════════════════════════════════════════════════════════════
-// CHART STORE + OVERVIEW CHARTS (active panel = init now)
+// GANTT — vieillissement des tranches
 // ══════════════════════════════════════════════════════════════
+const ganttData=(()=>{
+  const trDef=[{label:'BOP',entered:-1,start:BOP_SEED},...raw.map((d,i)=>({label:d.m,entered:i,start:d.collecte}))];
+  const snaps={};trDef.forEach(tr=>{snaps[tr.label]={};});
+  const q3=[{label:'BOP',entered:-1,amount:BOP_SEED}];let c3=0;
+  for(let t=0;t<12;t++){
+    q3.push({label:raw[t].m,entered:t,amount:raw[t].collecte});
+    const da=raw[t].dette+c3,eq=Math.max(0,raw[t].acq-da);
+    c3=Math.max(0,da-raw[t].acq);
+    let toc=eq;
+    while(toc>1e-6&&q3.length){const o=q3[0],tk=Math.min(o.amount,toc);o.amount-=tk;if(o.amount<1e-6)q3.shift();toc-=tk;}
+    trDef.forEach(tr=>{
+      if(tr.entered<=t){const inQ=q3.find(b=>b.label===tr.label);snaps[tr.label][t]=inQ?inQ.amount:0;}
+    });
+  }
+  return{trDef,snaps};
+})();
+
+(()=>{
+  const{trDef,snaps}=ganttData;
+  const ageCols=['rgba(76,175,125,.85)','rgba(160,190,70,.9)','rgba(240,165,0,.9)','rgba(224,80,80,.9)'];
+  const ageLabels=['0–1 mois ✓','1–2 mois','2–3 mois ⚠','≥ 3 mois — DRAG'];
+  const maxAll=Math.max(...trDef.map(tr=>tr.start));
+
+  const hdr=`<tr><th class="row-lbl"></th>${months.map(m=>`<th>${m}</th>`).join('')}</tr>`;
+  const bodyRows=trDef.map(tr=>{
+    const cells=months.map((_,t)=>{
+      if(tr.entered>t) return `<td><span class="g-empty"></span></td>`;
+      const rem=snaps[tr.label][t]||0;
+      if(rem<1e3){
+        // deployed — show grey dot, still tappable
+        return `<td><span class="g-deployed" data-tr="${tr.label}" data-t="${t}"></span></td>`;
+      }
+      const age=t-tr.entered;
+      const col=ageCols[Math.min(age,3)];
+      const h=Math.max(5,Math.round(rem/maxAll*20));
+      return `<td><span class="g-cell" data-tr="${tr.label}" data-t="${t}" style="background:${col};height:${h}px;margin-top:${20-h}px"></span></td>`;
+    }).join('');
+    return `<tr><td class="g-label">${tr.label}</td>${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('ganttWidget').innerHTML=
+    `<div class="gantt-wrap"><table class="gantt-table"><thead>${hdr}</thead><tbody>${bodyRows}</tbody></table></div>`;
+
+  // ── Tooltip logic ──
+  let activeEl=null;
+  function showGTip(el,trLabel,t){
+    if(activeEl) activeEl.classList.remove('active');
+    activeEl=el; el.classList.add('active');
+
+    const tr=trDef.find(x=>x.label===trLabel);
+    const rem=snaps[trLabel][t]||0;
+    const age=t-tr.entered;
+    const deployed=tr.start-rem;
+    const depPct=(deployed/tr.start*100).toFixed(0);
+    const ageIdx=Math.min(age,3);
+    const statusColor=['var(--pos)','var(--pos)','var(--amb)','var(--neg)'][ageIdx];
+
+    document.getElementById('gTipLbl').textContent=trLabel==='BOP'?'Seed initial (BOP)':trLabel+' — collecte '+months[t-1>-1?Math.max(0,tr.entered):0];
+    document.getElementById('gTipSub').textContent='Tap sur une case = détail ce mois-là';
+    document.getElementById('gTipRem').textContent=rem<1e3?'Épuisée':(rem/1e6).toFixed(2)+'M€ restant';
+    document.getElementById('gTipAge').textContent=age+' mois dans la file en '+months[t];
+    document.getElementById('gTipDep').textContent=depPct+'% déployé ('+( deployed/1e6).toFixed(1)+'M€ sur '+(tr.start/1e6).toFixed(1)+'M€)';
+    const statusTxt=[' Dans la fenêtre jouissance',' Dans la fenêtre jouissance',' Proche du seuil — vigilance',' Cash drag actif'][ageIdx];
+    const gTipStatus=document.getElementById('gTipStatus');
+    gTipStatus.textContent=statusTxt; gTipStatus.style.color=statusColor;
+
+    // Sparkline — évolution de rem pour cette tranche sur tous les mois actifs
+    const activeMths=months.filter((_,i)=>tr.entered<=i);
+    const vals=activeMths.map((_,i)=>{const mi=i+(tr.entered+1);return snaps[trLabel][mi]||0;});
+    const maxV=Math.max(...vals,1);
+    const sparkCols=activeMths.map((_,i)=>{const mi=i+(tr.entered+1);const a=mi-tr.entered;return ageCols[Math.min(a,3)];});
+
+    document.getElementById('gTipSpark').innerHTML=vals.map((v,i)=>{
+      const h=Math.max(2,Math.round(v/maxV*28));
+      const isCur=(tr.entered+1+i)===t;
+      return `<div class="g-spark-bar" style="background:${sparkCols[i]};height:${h}px;${isCur?'outline:1.5px solid white;outline-offset:1px':''}"></div>`;
+    }).join('');
+    document.getElementById('gTipSparkLbl').innerHTML=activeMths.map((_,i)=>{
+      const isCur=(tr.entered+1+i)===t;
+      return `<div class="g-spark-ml" style="${isCur?'color:var(--white);font-weight:600':''}">${activeMths[i]}</div>`;
+    }).join('');
+
+    // Position: center of screen, top third
+    const tip=document.getElementById('gTip');
+    tip.style.top='72px';
+    tip.classList.remove('hidden');
+  }
+
+  function closeGTip(){
+    document.getElementById('gTip').classList.add('hidden');
+    if(activeEl){activeEl.classList.remove('active');activeEl=null;}
+  }
+  window.closeGTip=closeGTip;
+
+  // Attach events — both touch and click
+  document.getElementById('ganttWidget').addEventListener('click',e=>{
+    const el=e.target.closest('[data-tr]');
+    if(!el)return;
+    e.stopPropagation();
+    showGTip(el,el.dataset.tr,+el.dataset.t);
+  });
+  document.getElementById('ganttWidget').addEventListener('touchend',e=>{
+    const el=e.target.closest('[data-tr]');
+    if(!el)return;
+    e.preventDefault();e.stopPropagation();
+    showGTip(el,el.dataset.tr,+el.dataset.t);
+  },{passive:false});
+  // Close on tap outside
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#gTip')&&!e.target.closest('[data-tr]'))closeGTip();
+  });
+})();
 const chartI={};
 Chart.defaults.font.family="'IBM Plex Mono',monospace";
 Chart.defaults.font.size=9;
