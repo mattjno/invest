@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFO — Délai Investissement Collecte 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:     #0a0a0a;
+  --panel:  #111;
+  --border: #222;
+  --b2:     #2a2a2a;
+  --text:   #ccc;
+  --t2:     #888;
+  --t3:     #444;
+  --white:  #e8e8e8;
+  --amb:    #f0a500;
+  --amb2:   #c07800;
+  --pos:    #4caf7d;
+  --neg:    #e05050;
+  --neu:    #6699bb;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  min-height: 100vh;
+}
+
+/* TOPBAR */
+.topbar {
+  background: #000;
+  border-bottom: 1px solid #1a1a1a;
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-logo { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 13px; color: var(--amb); letter-spacing: 0.06em; }
+.topbar-title { font-size: 10px; color: var(--t3); letter-spacing: 0.04em; border-left: 1px solid #222; padding-left: 20px; margin-left: 20px; }
+.topbar-right { font-size: 10px; color: var(--t3); letter-spacing: 0.06em; }
+
+/* MAIN */
+.main { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+
+/* HEADER ROW */
+.hrow {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 16px;
+}
+.h-instrument { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+.h-meta { font-size: 9px; color: var(--t3); letter-spacing: 0.06em; text-transform: uppercase; }
+.h-result-val { font-family: 'IBM Plex Sans', sans-serif; font-size: 30px; font-weight: 600; color: var(--amb); text-align: right; line-height: 1; }
+.h-result-lbl { font-size: 9px; color: var(--t2); text-transform: uppercase; letter-spacing: 0.08em; text-align: right; margin-top: 4px; }
+
+/* POSTULAT */
+.postulat {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--amb2);
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 10px; color: var(--t2); line-height: 1.8;
+}
+.postulat-eqs { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 6px; font-size: 11px; color: var(--text); }
+.sep { color: var(--t3); }
+
+/* KPI STRIP */
+.kpi-strip {
+  display: grid; grid-template-columns: repeat(6,1fr);
+  border: 1px solid var(--border); margin-bottom: 16px;
+}
+.kpi-cell {
+  padding: 11px 14px; border-right: 1px solid var(--border);
+}
+.kpi-cell:last-child { border-right: none; }
+.kl { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--t3); margin-bottom: 4px; }
+.kv { font-size: 14px; font-weight: 500; color: var(--white); }
+.ks { font-size: 9px; color: var(--t3); margin-top: 3px; }
+.pos { color: var(--pos); } .neg { color: var(--neg); } .amb { color: var(--amb); } .neu { color: var(--neu); }
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 0; }
+.tab-btn {
+  background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  color: var(--t2); padding: 8px 18px 9px; cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  letter-spacing: 0.08em; text-transform: uppercase; transition: color .15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { border-bottom-color: var(--amb); color: var(--amb); }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* CHART AREAS */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); margin-bottom: 1px; }
+.gf { background: var(--border); margin-bottom: 1px; }
+.cp { background: var(--panel); padding: 18px 20px; }
+.ct {
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--t3); margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ct span { color: var(--t2); font-size: 10px; }
+
+/* TABLE */
+.tp { background: var(--panel); }
+table { width: 100%; border-collapse: collapse; font-size: 10px; }
+thead tr { background: #0d0d0d; border-bottom: 1px solid var(--b2); }
+thead th {
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--t3); padding: 7px 10px; text-align: right; font-weight: 400; white-space: nowrap;
+}
+thead th:first-child { text-align: left; }
+tbody tr { border-bottom: 1px solid #151515; }
+tbody tr:hover { background: #141414; }
+td { padding: 7px 10px; text-align: right; color: var(--t2); }
+td:first-child { text-align: left; color: var(--text); font-weight: 500; }
+tfoot tr { border-top: 1px solid var(--b2); background: #0d0d0d; }
+tfoot td { padding: 7px 10px; text-align: right; font-weight: 600; color: var(--text); font-size: 10px; }
+tfoot td:first-child { text-align: left; color: var(--t2); }
+.tag { display: inline-block; padding: 1px 5px; border-radius: 1px; font-size: 8px; letter-spacing: 0.04em; }
+.tp { background: rgba(76,175,125,0.1); color: var(--pos); }
+.tn { background: rgba(224,80,80,0.1); color: var(--neg); }
+.tu { background: rgba(102,153,187,0.1); color: var(--neu); }
+.ta { background: rgba(240,165,0,0.08); color: var(--amb); }
+
+/* QUEUE VIZ */
+.q-row { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
+.q-lbl { width: 30px; font-size: 9px; color: var(--t3); text-align: right; flex-shrink: 0; }
+.q-track { flex: 1; height: 14px; display: flex; overflow: hidden; }
+.q-seg { height: 100%; position: relative; cursor: default; }
+.q-seg:hover { opacity: 0.6; }
+.q-seg:hover .q-tip { display: block; }
+.q-tip {
+  display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: #000; border: 1px solid #222; padding: 4px 8px; font-size: 9px;
+  white-space: nowrap; color: var(--text); z-index: 20; pointer-events: none;
+}
+.q-val { width: 52px; text-align: right; font-size: 9px; color: var(--t3); }
+
+.leg { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 20px; background: var(--panel); border-top: 1px solid var(--border); }
+.li { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--t3); }
+.ld { width: 8px; height: 8px; border-radius: 1px; flex-shrink: 0; }
+
+/* BALANCE */
+.bal-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); }
+.bc { background: var(--panel); padding: 16px 20px; }
+.bcl { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--t3); margin-bottom: 6px; }
+.bcv { font-size: 20px; font-weight: 500; color: var(--white); }
+.bcn { font-size: 9px; color: var(--t3); margin-top: 5px; line-height: 1.6; }
+.bok { color: var(--pos); } .bko { color: var(--neg); }
+
+.note-bar { background: var(--panel); border-top: 1px solid var(--border); padding: 9px 14px; font-size: 9px; color: var(--t3); line-height: 1.7; }
+.note-bar b { color: var(--t2); }
+
+@media(max-width:800px){
+  .kpi-strip{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr}
+  .bal-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center">
+    <div class="topbar-logo">PORTFOLIO ANALYTICS</div>
+    <div class="topbar-title">FIFO — DÉLAI D'INVESTISSEMENT · REMAKE LIVE FY 2025</div>
+  </div>
+  <div class="topbar-right" id="clock"></div>
+</div>
+
+<div class="main">
+
+  <div class="hrow">
+    <div>
+      <div class="h-instrument">Fonds Immobilier — Modèle FIFO Equity</div>
+      <div class="h-meta">Equity immo = Acq − Dette · BOP seed T-0 · Surplus dette reporté · Jan–Déc 2025</div>
+    </div>
+    <div>
+      <div class="h-result-val" id="hDays">—</div>
+      <div class="h-result-lbl">Délai moyen FIFO (jours)</div>
+    </div>
+  </div>
+
+  <div class="postulat">
+    La collecte est la source unique de l'equity immobilière. Le BOP 31/12/2024 entre en file à T-0 comme equity non encore investie.
+    <div class="postulat-eqs">
+      <span>Equity Immo = Acquisition − Dette</span>
+      <span class="sep">|</span>
+      <span>File = BOP seed + Σ Collecte mensuelle</span>
+      <span class="sep">|</span>
+      <span>Surplus dette(t) reporté sur t+1</span>
+    </div>
+  </div>
+
+  <div class="kpi-strip" id="kpiStrip"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('overview',this)">Vue d'ensemble</button>
+    <button class="tab-btn" onclick="switchTab('table',this)">Détail mensuel</button>
+    <button class="tab-btn" onclick="switchTab('queue',this)">État de la file</button>
+    <button class="tab-btn" onclick="switchTab('verification',this)">Vérification</button>
+  </div>
+
+  <div class="panel active" id="panel-overview">
+    <div class="g2">
+      <div class="cp">
+        <div class="ct">EQUITY IMMO CONSOMMÉE PAR MILLÉSIME (M€) <span id="lbl1"></span></div>
+        <canvas id="cStack" height="130"></canvas>
+      </div>
+      <div class="cp">
+        <div class="ct">DÉLAI MOYEN PONDÉRÉ MENSUEL (JOURS) <span id="lbl2"></span></div>
+        <canvas id="cDelay" height="130"></canvas>
+      </div>
+    </div>
+    <div class="gf">
+      <div class="cp">
+        <div class="ct">TAILLE DE LA FILE FIFO EN FIN DE MOIS (M€)</div>
+        <canvas id="cQueue" height="60"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-table">
+    <div class="tp">
+      <table>
+        <thead><tr>
+          <th>Mois</th><th>BOP</th><th>Collecte</th><th>Dette</th>
+          <th>Acq Live</th><th>Acq Social</th><th>Acq totale</th>
+          <th>Carry in</th><th>Dette nette</th><th>Equity immo</th>
+          <th>Consommé FIFO</th><th>Délai moy.</th><th>Carry out</th><th>File fin mois</th><th>EOP</th>
+        </tr></thead>
+        <tbody id="tBody"></tbody>
+        <tfoot id="tFoot"></tfoot>
+      </table>
+    </div>
+    <div class="note-bar" id="noteBar"></div>
+  </div>
+
+  <div class="panel" id="panel-queue">
+    <div class="cp" style="padding-bottom:8px">
+      <div class="ct">COMPOSITION DE LA FILE EN FIN DE MOIS PAR MILLÉSIME</div>
+      <div id="queueViz"></div>
+    </div>
+    <div class="leg" id="queueLeg"></div>
+  </div>
+
+  <div class="panel" id="panel-verification">
+    <div class="bal-grid" id="balGrid"></div>
+    <div style="margin-top:1px">
+      <div class="cp">
+        <div class="ct">EOP COMPTABLE vs FILE FIFO FIN DE MOIS (M€)</div>
+        <canvas id="cBal" height="80"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+// acq = Acq Live + Acq Social (total equity investie)
+// autre = autres flux pour réconciliation tréso (non utilisé dans FIFO)
+const BOP_SEED = 12217707.01;
+const raw = [
+  { m:'Jan',  bop:12217707.01, collecte:20517300,   dette:0,           acq_live:0,           acq_soc:248008.68,   autre:-6915805.83,  eop:25571192.50  },
+  { m:'Fév',  bop:25571192.50, collecte:21815148,   dette:0,           acq_live:15920170.92, acq_soc:762328.45,   autre:-4669506.96,  eop:26034334.17  },
+  { m:'Mar',  bop:26034334.17, collecte:31229136,   dette:0,           acq_live:38876168.49, acq_soc:329225.37,   autre:3373219.24,   eop:21431295.55  },
+  { m:'Avr',  bop:21431295.55, collecte:26058348,   dette:0,           acq_live:0,           acq_soc:0,           autre:-17091169.96, eop:30398473.59  },
+  { m:'Mai',  bop:30398473.59, collecte:11911356,   dette:0,           acq_live:0,           acq_soc:565837.65,   autre:-1545910.16,  eop:40198081.78  },
+  { m:'Jun',  bop:40198081.78, collecte:14265516,   dette:0,           acq_live:20463479.86, acq_soc:1172366.99,  autre:-16615640.21, eop:16212110.71  },
+  { m:'Juil', bop:16212110.71, collecte:13993176,   dette:0,           acq_live:0,           acq_soc:1056669.10,  autre:-2070833.15,  eop:27077784.46  },
+  { m:'Aoû',  bop:27077784.46, collecte:8765268,    dette:0,           acq_live:32160972.50, acq_soc:481836.38,   autre:22067741.49,  eop:25267985.07  },
+  { m:'Sep',  bop:25267985.07, collecte:9786696,    dette:20000000,    acq_live:46354277.57, acq_soc:251551.50,   autre:14164754.89,  eop:22613606.89  },
+  { m:'Oct',  bop:22613606.89, collecte:16059492,   dette:0,           acq_live:0,           acq_soc:1172568.77,  autre:-2490401.44,  eop:35010128.68  },
+  { m:'Nov',  bop:35010128.68, collecte:11623308,   dette:0,           acq_live:9081505.43,  acq_soc:514230.56,   autre:-2027572.01,  eop:35010128.68  },
+  { m:'Déc',  bop:35010128.68, collecte:12577212,   dette:121575223.47,acq_live:139215659.00,acq_soc:1130865.73,  autre:-5051291.38,  eop:23764748.04  },
+].map(d => ({ ...d, acq: d.acq_live + d.acq_soc }));
+
+// ── FIFO ENGINE ───────────────────────────────────────────────
+function runFIFO() {
+  let queue = [{ amount: BOP_SEED, label: 'BOP', monthIdx: 0 }];
+  let carryDette = 0;
+  const res = [], snaps = [];
+  for (let t = 0; t < raw.length; t++) {
+    const d = raw[t];
+    queue.push({ amount: d.collecte, label: d.m, monthIdx: t });
+    const carryIn        = carryDette;
+    const totalDebtAvail = d.dette + carryDette;
+    const equityImmo     = Math.max(0, d.acq - totalDebtAvail);
+    const carryOut       = Math.max(0, totalDebtAvail - d.acq);
+    const detteNette     = Math.min(totalDebtAvail, d.acq);
+    carryDette = carryOut;
+    let toConsume = equityImmo, wSum = 0, consumed = 0;
+    const batches = [];
+    while (toConsume > 1e-6 && queue.length > 0) {
+      const o = queue[0];
+      const age = t - o.monthIdx;
+      const take = Math.min(o.amount, toConsume);
+      wSum += take * age; consumed += take;
+      batches.push({ amount: take, label: o.label, monthIdx: o.monthIdx, age });
+      o.amount -= take;
+      if (o.amount < 1e-6) queue.shift();
+      toConsume -= take;
+    }
+    const avgM = consumed > 0 ? wSum / consumed : null;
+    const avgD = avgM != null ? Math.round(avgM * 30.4) : null;
+    const qT   = queue.reduce((s, b) => s + b.amount, 0);
+    res.push({ ...d, t, carryIn, detteNette, equityImmo, carryOut, consumed, batches, avgM, avgD, qT });
+    snaps.push(queue.map(b => ({ ...b })));
+  }
+  return { res, snaps, finalQueue: queue.slice() };
+}
+const { res, snaps, finalQueue } = runFIFO();
+
+// ── HELPERS ───────────────────────────────────────────────────
+const fmtM  = v => (v/1e6).toFixed(1)+'M';
+const fmtM2 = v => (v/1e6).toFixed(2)+'M€';
+const months = raw.map(d => d.m);
+const totalCollecte = raw.reduce((s,d)=>s+d.collecte,0);
+const totalAcq      = raw.reduce((s,d)=>s+d.acq,0);
+const totalDette    = raw.reduce((s,d)=>s+d.dette,0);
+const totalEquity   = res.reduce((s,r)=>s+r.equityImmo,0);
+const totalConsumed = res.reduce((s,r)=>s+r.consumed,0);
+const remaining     = finalQueue.reduce((s,b)=>s+b.amount,0);
+let tw=0,tc=0;
+res.forEach(r=>{tw+=r.consumed*(r.avgM||0);tc+=r.consumed;});
+const gAvgM = tc>0?tw/tc:0;
+const gAvgD = Math.round(gAvgM*30.4);
+
+setInterval(()=>{
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toLocaleDateString('fr-FR')+'  '+n.toLocaleTimeString('fr-FR');
+},1000);
+document.getElementById('hDays').textContent = gAvgD+'J';
+
+// ── KPI STRIP ─────────────────────────────────────────────────
+const kpis=[
+  {l:'Délai FIFO moyen',     v:gAvgD+'J',                          s:gAvgM.toFixed(1)+' mois',         c:'amb'},
+  {l:'Entrées (seed+coll)',  v:fmtM(BOP_SEED+totalCollecte)+'€',   s:'seed '+fmtM(BOP_SEED)+'€',       c:''},
+  {l:'Equity immo',          v:fmtM(totalEquity)+'€',              s:'Acq − Dette',                     c:'pos'},
+  {l:'Consommé FIFO',        v:fmtM(totalConsumed)+'€',            s:(totalConsumed/(BOP_SEED+totalCollecte)*100).toFixed(1)+'% déployé', c:'pos'},
+  {l:'File résiduelle déc',  v:fmtM(remaining)+'€',                s:'Non investi',                     c:'neg'},
+  {l:'Carry dette max',      v:fmtM(Math.max(...res.map(r=>r.carryOut)))+'€', s:'Surplus dette reporté',      c:'neu'},
+];
+document.getElementById('kpiStrip').innerHTML = kpis.map(k=>`
+  <div class="kpi-cell">
+    <div class="kl">${k.l}</div>
+    <div class="kv ${k.c}">${k.v}</div>
+    <div class="ks">${k.s}</div>
+  </div>`).join('');
+document.getElementById('lbl1').textContent = fmtM(totalConsumed)+'€';
+document.getElementById('lbl2').textContent = gAvgD+'J avg';
+
+// ── CHART DEFAULTS ────────────────────────────────────────────
+Chart.defaults.color = '#555';
+Chart.defaults.font.family = "'IBM Plex Mono',monospace";
+Chart.defaults.font.size = 9;
+const grd = {color:'#1a1a1a',drawBorder:false};
+const tip = {
+  backgroundColor:'#000',borderColor:'#2a2a2a',borderWidth:1,
+  titleColor:'#888',bodyColor:'#ccc',padding:10,cornerRadius:2,
+  titleFont:{family:"'IBM Plex Mono',monospace",size:10},
+  bodyFont: {family:"'IBM Plex Mono',monospace",size:10},
+};
+
+// ── COLORS — monochrome/desaturated ──────────────────────────
+const COLS = [
+  'rgba(240,165,0,0.70)',    // BOP — amber only
+  'rgba(170,170,170,0.50)',  // Jan
+  'rgba(155,155,155,0.48)',
+  'rgba(140,140,140,0.46)',
+  'rgba(118,135,152,0.50)',
+  'rgba(103,127,152,0.52)',
+  'rgba( 92,122,155,0.54)',
+  'rgba( 82,117,158,0.56)',
+  'rgba( 74,113,162,0.58)',
+  'rgba( 67,110,165,0.60)',
+  'rgba( 62,107,168,0.62)',
+  'rgba( 57,104,172,0.64)',
+  'rgba( 53,100,175,0.66)',
+];
+const allLbls = ['BOP', ...months];
+const getC = lbl => COLS[allLbls.indexOf(lbl)] || 'rgba(90,90,90,0.4)';
+
+// ── CHART: stacked ────────────────────────────────────────────
+const sDS = allLbls.map((lbl,i)=>({
+  label: lbl,
+  data: res.map(r=>{const b=r.batches.find(x=>x.label===lbl);return b?b.amount:0;}),
+  backgroundColor: COLS[i]||'rgba(90,90,90,0.4)',
+  borderWidth:0, stack:'eq',
+}));
+new Chart(document.getElementById('cStack'),{
+  type:'bar',data:{labels:months,datasets:sDS},
+  options:{responsive:true,plugins:{
+    legend:{labels:{boxWidth:8,padding:10,color:'#555',filter:item=>sDS[item.datasetIndex].data.some(v=>v>0)}},
+    tooltip:{...tip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtM2(ctx.raw)}`}}
+  },scales:{x:{grid:grd,stacked:true,ticks:{color:'#555'}},y:{grid:grd,stacked:true,ticks:{callback:v=>fmtM(v)+'€',color:'#555'}}}}
+});
+
+// ── CHART: delay ──────────────────────────────────────────────
+new Chart(document.getElementById('cDelay'),{
+  type:'line',
+  data:{labels:months,datasets:[{
+    label:'Délai (j)',data:res.map(r=>r.avgD),
+    borderColor:'rgba(240,165,0,0.75)',backgroundColor:'rgba(240,165,0,0.04)',
+    borderWidth:1.5,pointBackgroundColor:'rgba(240,165,0,0.8)',
+    pointRadius:3,fill:true,tension:0.3,spanGaps:true,
+  }]},
+  options:{responsive:true,plugins:{
+    legend:{display:false},
+    tooltip:{...tip,callbacks:{label:ctx=>ctx.raw==null?' —':` ${ctx.raw}J`}}
+  },scales:{x:{grid:grd,ticks:{color:'#555'}},y:{grid:grd,ticks:{callback:v=>v+'J',color:'#555'}}}}
+});
+
+// ── CHART: queue size ─────────────────────────────────────────
+new Chart(document.getElementById('cQueue'),{
+  type:'bar',
+  data:{labels:months,datasets:[{
+    label:'File (M€)',
+    data:snaps.map(q=>q.reduce((s,b)=>s+b.amount,0)),
+    backgroundColor:'rgba(102,153,187,0.3)',borderColor:'rgba(102,153,187,0.5)',borderWidth:1,
+  }]},
+  options:{responsive:true,plugins:{
+    legend:{display:false},
+    tooltip:{...tip,callbacks:{label:ctx=>` ${fmtM2(ctx.raw)}`}}
+  },scales:{x:{grid:grd,ticks:{color:'#555'}},y:{grid:grd,ticks:{callback:v=>fmtM(v)+'€',color:'#555'}}}}
+});
+
+// ── TABLE ─────────────────────────────────────────────────────
+document.getElementById('tBody').innerHTML = res.map((r,i)=>{
+  const ds = r.avgD==null?'<span style="color:#333">—</span>'
+    :`<span class="${r.avgD<30?'pos':r.avgD<90?'neu':'neg'}">${r.avgD}J</span>`;
+  const vt = r.avgD==null?'':r.avgD<30?'<span class="tag tp">RAPIDE</span>':r.avgD<90?'<span class="tag tu">MOYEN</span>':'<span class="tag tn">LENT</span>';
+  const co = r.carryOut>1e-3?`<span class="tag ta">${fmtM2(r.carryOut)}</span>`:'<span style="color:#333">—</span>';
+  return `<tr>
+    <td>${r.m}</td>
+    <td style="color:#555">${fmtM2(r.bop)}</td>
+    <td class="pos">${fmtM2(r.collecte)}</td>
+    <td style="color:${r.dette>0?'#f0a500':'#333'}">${r.dette>0?fmtM2(r.dette):'—'}</td>
+    <td style="color:${r.acq_live>0?'#ccc':'#333'}">${r.acq_live>0?'−'+fmtM2(r.acq_live):'—'}</td>
+    <td style="color:${r.acq_soc>0?'#999':'#333'}">${r.acq_soc>0?'−'+fmtM2(r.acq_soc):'—'}</td>
+    <td style="color:${r.acq>0?'#ccc':'#333'}">${r.acq>0?fmtM2(r.acq):'—'}</td>
+    <td style="color:${r.carryIn>0?'#f0a500':'#333'}">${r.carryIn>0?fmtM2(r.carryIn):'—'}</td>
+    <td style="color:${r.detteNette>0?'#999':'#333'}">${r.detteNette>0?fmtM2(r.detteNette):'—'}</td>
+    <td class="pos">${r.equityImmo>0?fmtM2(r.equityImmo):'<span style="color:#333">—</span>'}</td>
+    <td style="color:#ccc">${r.consumed>0?fmtM2(r.consumed):'<span style="color:#333">—</span>'}</td>
+    <td>${ds} ${vt}</td>
+    <td>${co}</td>
+    <td style="color:${r.qT>60e6?'#e05050':r.qT>30e6?'#6699bb':'#ccc'}">${fmtM2(r.qT)}</td>
+    <td class="amb">${fmtM2(r.eop)}</td>
+  </tr>`;
+}).join('');
+document.getElementById('tFoot').innerHTML=`<tr>
+  <td>TOTAL</td>
+  <td style="color:#555">${fmtM2(BOP_SEED)}</td>
+  <td class="pos">${fmtM2(totalCollecte)}</td>
+  <td class="amb">${fmtM2(totalDette)}</td>
+  <td style="color:#ccc">−${fmtM2(raw.reduce((s,d)=>s+d.acq_live,0))}</td>
+  <td style="color:#999">−${fmtM2(raw.reduce((s,d)=>s+d.acq_soc,0))}</td>
+  <td>${fmtM2(totalAcq)}</td>
+  <td>—</td>
+  <td>${fmtM2(totalDette)}</td>
+  <td class="pos">${fmtM2(totalEquity)}</td>
+  <td style="color:#ccc">${fmtM2(totalConsumed)}</td>
+  <td class="amb">${gAvgD}J</td>
+  <td>—</td>
+  <td>${fmtM2(remaining)}</td>
+  <td class="amb">${fmtM2(raw[11].eop)}</td>
+</tr>`;
+const carries=res.filter(r=>r.carryOut>1e-3);
+document.getElementById('noteBar').innerHTML=carries.length
+  ?'<b>Surplus dette reportés :</b>  '+carries.map(r=>`${r.m} → ${fmtM2(r.carryOut)} reporté sur ${months[r.t+1]||'N+1'}`).join('  ·  ')
+  :'Aucun surplus dette à reporter sur 2025.';
+
+// ── QUEUE VIZ ─────────────────────────────────────────────────
+const maxQ = Math.max(...snaps.map(q=>q.reduce((s,b)=>s+b.amount,0)));
+document.getElementById('queueViz').innerHTML = snaps.map((snap,t)=>{
+  const total=snap.reduce((s,b)=>s+b.amount,0);
+  const pct=maxQ>0?total/maxQ:0;
+  const segs=snap.map(b=>{
+    const w=total>0?(b.amount/total*100).toFixed(2):0;
+    const age=t-b.monthIdx;
+    return `<div class="q-seg" style="width:${w}%;background:${getC(b.label)};opacity:${Math.max(0.25,1-age*0.08)}">
+      <div class="q-tip">${b.label}: ${fmtM2(b.amount)} · âge ${age}m</div>
+    </div>`;
+  }).join('');
+  return `<div class="q-row">
+    <div class="q-lbl">${months[t]}</div>
+    <div class="q-track" style="width:${(pct*100).toFixed(1)}%;opacity:${0.4+pct*0.6}">${segs}</div>
+    <div class="q-val">${fmtM(total)}€</div>
+  </div>`;
+}).join('');
+document.getElementById('queueLeg').innerHTML=allLbls.map((lbl,i)=>`
+  <div class="li"><div class="ld" style="background:${COLS[i]}"></div>${lbl}</div>`).join('');
+
+// ── BALANCE ───────────────────────────────────────────────────
+const theoretic=(BOP_SEED+totalCollecte)-totalEquity;
+const diff=Math.abs(remaining-theoretic);
+const ok=diff<500;
+document.getElementById('balGrid').innerHTML=[
+  {l:'ENTRÉES TOTALES (SEED + COLLECTE)',v:fmtM2(BOP_SEED+totalCollecte),n:`Seed ${fmtM2(BOP_SEED)}  +  Collecte ${fmtM2(totalCollecte)}`,c:''},
+  {l:'EQUITY IMMO (ACQ − DETTE)',v:fmtM2(totalEquity),n:`Acq ${fmtM2(totalAcq)}  −  Dette ${fmtM2(totalDette)}`,c:'pos'},
+  {l:ok?'✓  RÉSIDU = FILE RÉELLE':'✗  ÉCART DÉTECTÉ',v:fmtM2(remaining),n:`Théorique ${fmtM2(theoretic)}  ·  Écart ${fmtM2(diff)}`,c:ok?'bok':'bko'},
+].map(c=>`<div class="bc"><div class="bcl">${c.l}</div><div class="bcv ${c.c}">${c.v}</div><div class="bcn">${c.n}</div></div>`).join('');
+
+new Chart(document.getElementById('cBal'),{
+  type:'line',
+  data:{labels:months,datasets:[
+    {label:'EOP comptable',data:raw.map(d=>d.eop),
+     borderColor:'rgba(180,180,180,0.4)',borderDash:[4,3],borderWidth:1.5,
+     pointRadius:3,pointBackgroundColor:'rgba(180,180,180,0.4)',tension:0.3},
+    {label:'File FIFO fin de mois',data:snaps.map(q=>q.reduce((s,b)=>s+b.amount,0)),
+     borderColor:'rgba(240,165,0,0.65)',borderWidth:1.5,
+     pointRadius:3,pointBackgroundColor:'rgba(240,165,0,0.65)',tension:0.3},
+    {label:'BOP',data:raw.map(d=>d.bop),
+     borderColor:'rgba(102,153,187,0.4)',borderDash:[2,4],borderWidth:1,
+     pointRadius:2,tension:0.3},
+  ]},
+  options:{responsive:true,plugins:{
+    legend:{labels:{boxWidth:8,padding:14,color:'#555'}},
+    tooltip:{...tip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtM2(ctx.raw)}`}}
+  },scales:{x:{grid:grd,ticks:{color:'#555'}},y:{grid:grd,ticks:{callback:v=>fmtM(v)+'€',color:'#555'}}}}
+});
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
