@@ -130,22 +130,24 @@ tfoot td:first-child { text-align: left; color: var(--t2); }
 .ta { background: rgba(240,165,0,0.08); color: var(--amb); }
 
 /* QUEUE VIZ */
-.q-row { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
+.q-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
 .q-lbl { width: 30px; font-size: 9px; color: var(--t3); text-align: right; flex-shrink: 0; }
-.q-track { flex: 1; height: 14px; display: flex; overflow: hidden; }
-.q-seg { height: 100%; position: relative; cursor: default; }
-.q-seg:hover { opacity: 0.6; }
+.q-outer { flex: 1; background: #1a1a1a; height: 22px; position: relative; }
+.q-bar { height: 100%; display: flex; overflow: hidden; position: absolute; top:0; left:0; }
+.q-seg { height: 100%; position: relative; cursor: default; transition: filter .15s; }
+.q-seg:hover { filter: brightness(1.4); }
 .q-seg:hover .q-tip { display: block; }
 .q-tip {
-  display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: #000; border: 1px solid #222; padding: 4px 8px; font-size: 9px;
+  display: none; position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: #050505; border: 1px solid #333; padding: 5px 10px; font-size: 9px;
   white-space: nowrap; color: var(--text); z-index: 20; pointer-events: none;
+  border-radius: 2px;
 }
-.q-val { width: 52px; text-align: right; font-size: 9px; color: var(--t3); }
+.q-val { width: 60px; text-align: right; font-size: 9px; color: var(--t2); font-weight:500; }
 
 .leg { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 20px; background: var(--panel); border-top: 1px solid var(--border); }
-.li { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--t3); }
-.ld { width: 8px; height: 8px; border-radius: 1px; flex-shrink: 0; }
+.li { display: flex; align-items: center; gap: 5px; font-size: 9px; }
+.ld { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 
 /* BALANCE */
 .bal-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); }
@@ -209,6 +211,12 @@ tfoot td:first-child { text-align: left; color: var(--t2); }
   </div>
 
   <div class="panel active" id="panel-overview">
+    <div class="gf">
+      <div class="cp">
+        <div class="ct">COLLECTE CUMULÉE vs EQUITY INVESTIE CUMULÉE (M€) — SOLDE NON INVESTI</div>
+        <canvas id="cCumul" height="75"></canvas>
+      </div>
+    </div>
     <div class="g2">
       <div class="cp">
         <div class="ct">EQUITY IMMO CONSOMMÉE PAR MILLÉSIME (M€) <span id="lbl1"></span></div>
@@ -370,21 +378,21 @@ const tip = {
   bodyFont: {family:"'IBM Plex Mono',monospace",size:10},
 };
 
-// ── COLORS — monochrome/desaturated ──────────────────────────
+// ── COLORS — palette distincte par millésime ──────────────────
 const COLS = [
-  'rgba(240,165,0,0.70)',    // BOP — amber only
-  'rgba(170,170,170,0.50)',  // Jan
-  'rgba(155,155,155,0.48)',
-  'rgba(140,140,140,0.46)',
-  'rgba(118,135,152,0.50)',
-  'rgba(103,127,152,0.52)',
-  'rgba( 92,122,155,0.54)',
-  'rgba( 82,117,158,0.56)',
-  'rgba( 74,113,162,0.58)',
-  'rgba( 67,110,165,0.60)',
-  'rgba( 62,107,168,0.62)',
-  'rgba( 57,104,172,0.64)',
-  'rgba( 53,100,175,0.66)',
+  'rgba(240,165,0,0.90)',    // BOP  — amber
+  'rgba(74,170,116,0.85)',   // Jan  — vert
+  'rgba(85,150,210,0.85)',   // Fév  — bleu
+  'rgba(210,90,90,0.85)',    // Mar  — rouge
+  'rgba(170,100,210,0.85)',  // Avr  — violet
+  'rgba(240,200,50,0.85)',   // Mai  — jaune
+  'rgba(50,195,190,0.85)',   // Jun  — teal
+  'rgba(230,130,50,0.85)',   // Juil — orange
+  'rgba(130,190,80,0.85)',   // Aoû  — vert clair
+  'rgba(100,160,220,0.85)',  // Sep  — bleu clair
+  'rgba(210,80,140,0.85)',   // Oct  — rose
+  'rgba(160,220,180,0.85)',  // Nov  — menthe
+  'rgba(255,165,100,0.85)',  // Déc  — pêche
 ];
 const allLbls = ['BOP', ...months];
 const getC = lbl => COLS[allLbls.indexOf(lbl)] || 'rgba(90,90,90,0.4)';
@@ -432,6 +440,49 @@ new Chart(document.getElementById('cQueue'),{
     tooltip:{...tip,callbacks:{label:ctx=>` ${fmtM2(ctx.raw)}`}}
   },scales:{x:{grid:grd,ticks:{color:'#555'}},y:{grid:grd,ticks:{callback:v=>fmtM(v)+'€',color:'#555'}}}}
 });
+
+// ── CHART: cumul collecte vs cumul equity investie ─────────────
+(()=>{
+  let cumCol=0, cumEq=0;
+  const dataCumCol=[], dataCumEq=[], dataSolde=[];
+  res.forEach(r=>{
+    cumCol += r.collecte;
+    cumEq  += r.equityImmo;
+    dataCumCol.push(BOP_SEED + cumCol);
+    dataCumEq.push(cumEq);
+    dataSolde.push((BOP_SEED + cumCol) - cumEq);
+  });
+  new Chart(document.getElementById('cCumul'),{
+    type:'line',
+    data:{labels:months,datasets:[
+      { label:'Seed + Collecte cumulée',
+        data:dataCumCol,
+        borderColor:'rgba(74,170,116,0.9)',
+        backgroundColor:'rgba(74,170,116,0.07)',
+        borderWidth:2, pointRadius:4, pointBackgroundColor:'rgba(74,170,116,0.9)',
+        fill:false, tension:0.3 },
+      { label:'Equity investie cumulée',
+        data:dataCumEq,
+        borderColor:'rgba(240,165,0,0.9)',
+        backgroundColor:'rgba(240,165,0,0.07)',
+        borderWidth:2, pointRadius:4, pointBackgroundColor:'rgba(240,165,0,0.9)',
+        fill:false, tension:0.3 },
+      { label:'Solde non investi (écart)',
+        data:dataSolde,
+        borderColor:'rgba(216,80,80,0.75)',
+        backgroundColor:'rgba(216,80,80,0.08)',
+        borderWidth:1.5, borderDash:[5,3], pointRadius:3,
+        fill:true, tension:0.3 },
+    ]},
+    options:{responsive:true,plugins:{
+      legend:{labels:{boxWidth:8,padding:14,color:'#666',font:{size:10}}},
+      tooltip:{...tip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtM2(ctx.raw)}`}}
+    },scales:{
+      x:{grid:grd,ticks:{color:'#555'}},
+      y:{grid:grd,ticks:{callback:v=>fmtM(v)+'€',color:'#555'}}
+    }}
+  });
+})();
 
 // ── TABLE ─────────────────────────────────────────────────────
 document.getElementById('tBody').innerHTML = res.map((r,i)=>{
@@ -483,22 +534,25 @@ document.getElementById('noteBar').innerHTML=carries.length
 const maxQ = Math.max(...snaps.map(q=>q.reduce((s,b)=>s+b.amount,0)));
 document.getElementById('queueViz').innerHTML = snaps.map((snap,t)=>{
   const total=snap.reduce((s,b)=>s+b.amount,0);
-  const pct=maxQ>0?total/maxQ:0;
+  const pct=maxQ>0?(total/maxQ*100).toFixed(1):0;
   const segs=snap.map(b=>{
-    const w=total>0?(b.amount/total*100).toFixed(2):0;
+    const w=total>0?(b.amount/total*100).toFixed(3):0;
     const age=t-b.monthIdx;
-    return `<div class="q-seg" style="width:${w}%;background:${getC(b.label)};opacity:${Math.max(0.25,1-age*0.08)}">
-      <div class="q-tip">${b.label}: ${fmtM2(b.amount)} · âge ${age}m</div>
+    const col=getC(b.label);
+    return `<div class="q-seg" style="width:${w}%;background:${col}">
+      <div class="q-tip">${b.label} · ${fmtM2(b.amount)} · âge ${age}m</div>
     </div>`;
   }).join('');
   return `<div class="q-row">
     <div class="q-lbl">${months[t]}</div>
-    <div class="q-track" style="width:${(pct*100).toFixed(1)}%;opacity:${0.4+pct*0.6}">${segs}</div>
+    <div class="q-outer">
+      <div class="q-bar" style="width:${pct}%">${segs}</div>
+    </div>
     <div class="q-val">${fmtM(total)}€</div>
   </div>`;
 }).join('');
 document.getElementById('queueLeg').innerHTML=allLbls.map((lbl,i)=>`
-  <div class="li"><div class="ld" style="background:${COLS[i]}"></div>${lbl}</div>`).join('');
+  <div class="li"><div class="ld" style="background:${COLS[i]}"></div><span style="color:${COLS[i].replace(/[\d.]+\)$/,'1)')}">${lbl}</span></div>`).join('');
 
 // ── BALANCE ───────────────────────────────────────────────────
 const theoretic=(BOP_SEED+totalCollecte)-totalEquity;
