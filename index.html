@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -9,271 +9,261 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#090909;--panel:#111;--panel2:#161616;--border:#1f1f1f;--b2:#2a2a2a;
-  --text:#c8c8c8;--t2:#787878;--t3:#3a3a3a;--white:#ebebeb;
+[data-theme="dark"]{
+  --bg:#090909;--panel:#111;--border:#1f1f1f;
+  --text:#c8c8c8;--t2:#787878;--t3:#404040;--white:#ebebeb;
   --amb:#f0a500;--pos:#4caf7d;--neg:#e05050;--neu:#6699bb;
-  --nav:56px;
+  --nav-bg:#000;--nav-border:#1a1a1a;--q-rail:#1a1a1a;--batch-bg:#1a1a1a;
+}
+[data-theme="light"]{
+  --bg:#f2f2f2;--panel:#ffffff;--border:#e0e0e0;
+  --text:#222;--t2:#888;--t3:#bbb;--white:#111;
+  --amb:#b37000;--pos:#2a7a4f;--neg:#c0392b;--neu:#2d5fa0;
+  --nav-bg:#fff;--nav-border:#e0e0e0;--q-rail:#e4e4e4;--batch-bg:#f5f5f5;
 }
 html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;display:flex;flex-direction:column}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;display:flex;flex-direction:column;transition:background .25s,color .25s}
 
-/* ── HEADER ── */
-.hdr{
-background:#000;border-bottom:1px solid #1a1a1a;
-padding:11px 16px 10px;flex-shrink:0;
-display:flex;align-items:center;justify-content:space-between;
-}
-.hdr-l{display:flex;align-items:baseline;gap:10px}
+.hdr{background:var(–nav-bg);border-bottom:1px solid var(–border);padding:10px 14px 9px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;transition:background .25s}
 .hdr-logo{font-family:‘IBM Plex Sans’,sans-serif;font-weight:700;font-size:13px;color:var(–amb);letter-spacing:.04em}
-.hdr-sub{font-size:9px;color:var(–t3);letter-spacing:.06em}
-.hdr-val{text-align:right}
-.hdr-days{font-family:‘IBM Plex Sans’,sans-serif;font-size:22px;font-weight:700;color:var(–amb);line-height:1}
-.hdr-dlbl{font-size:8px;color:var(–t2);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.hdr-sub{font-size:9px;color:var(–t3);letter-spacing:.06em;margin-left:8px}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.hdr-days{font-family:‘IBM Plex Sans’,sans-serif;font-size:20px;font-weight:700;color:var(–amb);line-height:1;text-align:right}
+.hdr-dlbl{font-size:8px;color:var(–t2);text-transform:uppercase;letter-spacing:.07em;margin-top:2px;text-align:right}
 
-/* ── SCROLL AREA ── */
-.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:var(–nav)}
+.theme-btn{background:none;border:1px solid var(–border);border-radius:20px;padding:4px 9px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:border-color .2s}
+.theme-btn:hover{border-color:var(–amb)}
+.theme-icon{font-size:14px;line-height:1}
+.theme-lbl{font-size:7px;font-family:‘IBM Plex Mono’,monospace;color:var(–t2);text-transform:uppercase;letter-spacing:.06em}
 
-/* ── KPI STRIP ── */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:56px}
+
 .kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(–border);border-bottom:1px solid var(–border)}
-.kc{background:var(–panel);padding:12px 13px}
-.kl{font-size:8px;text-transform:uppercase;letter-spacing:.09em;color:var(–t3);margin-bottom:3px;line-height:1.3}
-.kv{font-size:15px;font-weight:600;color:var(–white);line-height:1}
+.kc{background:var(–panel);padding:11px 12px;transition:background .25s}
+.kl{font-size:8px;text-transform:uppercase;letter-spacing:.09em;color:var(–t3);margin-bottom:3px}
+.kv{font-size:14px;font-weight:600;color:var(–white);line-height:1}
 .ks{font-size:8px;color:var(–t3);margin-top:3px}
 .amb{color:var(–amb)}.pos{color:var(–pos)}.neg{color:var(–neg)}.neu{color:var(–neu)}
 
-/* ── SECTION TITLE ── */
-.sec{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(–t3);
-padding:10px 16px 6px;border-top:1px solid var(–border)}
+.sec{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(–t3);padding:10px 14px 6px;border-top:1px solid var(–border)}
+.chart-block{background:var(–panel);padding:12px 12px 8px;border-bottom:1px solid var(–border);transition:background .25s}
 
-/* ── CHARTS ── */
-.chart-block{background:var(–panel);padding:14px 14px 10px;border-bottom:1px solid var(–border)}
-.ct{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(–t3);margin-bottom:10px}
+/* ── DRAG SCORE WIDGET ── */
+.drag-score{background:var(–panel);border-bottom:1px solid var(–border);padding:12px 14px;transition:background .25s}
+.ds-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.ds-title{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(–t3)}
+.ds-worst{font-size:9px;color:var(–t2)}
+.ds-row{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.ds-lbl{width:24px;font-size:8px;color:var(–t3);text-align:right;flex-shrink:0}
+.ds-track{flex:1;height:13px;background:var(–q-rail);border-radius:2px;overflow:hidden;display:flex}
+.ds-ok{height:100%;background:rgba(76,175,125,.45);transition:width .3s}
+.ds-bad{height:100%;background:rgba(224,80,80,.65);transition:width .3s}
+.ds-pct{width:32px;text-align:right;font-size:8px;font-weight:600}
 
-/* ── MONTH CARDS ── */
-.cards{padding:0 0 6px}
-.card{background:var(–panel);border-bottom:1px solid var(–border);padding:14px 16px;cursor:pointer}
-.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+/* ── CARDS ── */
+.card{background:var(–panel);border-bottom:1px solid var(–border);padding:13px 14px;cursor:pointer;transition:background .25s}
 .card-month{font-family:‘IBM Plex Sans’,sans-serif;font-size:14px;font-weight:600;color:var(–white)}
-.card-delay{font-size:11px;font-weight:500}
-.card-tag{font-size:8px;padding:2px 7px;border-radius:2px;margin-left:6px;letter-spacing:.04em}
-.tag-r{background:rgba(76,175,125,.12);color:var(–pos)}
-.tag-m{background:rgba(102,153,187,.12);color:var(–neu)}
-.tag-l{background:rgba(224,80,80,.12);color:var(–neg)}
-.tag-n{background:rgba(60,60,60,.5);color:var(–t3)}
-.card-body{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-top:10px}
-.cf{display:flex;flex-direction:column;gap:2px}
+.ctag{font-size:8px;padding:2px 6px;border-radius:2px;margin-left:6px;letter-spacing:.04em}
+.tag-g{background:rgba(76,175,125,.15);color:var(–pos)}
+.tag-r{background:rgba(224,80,80,.15);color:var(–neg)}
+.tag-n{background:rgba(130,130,130,.15);color:var(–t2)}
+.card-body{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-top:9px}
 .cf-l{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(–t3)}
-.cf-v{font-size:12px;font-weight:500;color:var(–text)}
-.card-bar{margin-top:10px;height:6px;background:var(–border);border-radius:3px;overflow:hidden}
-.card-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.cf-v{font-size:12px;font-weight:500;color:var(–text);margin-top:2px}
+.card-bar{margin-top:8px;height:5px;background:var(–border);border-radius:3px;overflow:hidden}
+.card-bar-fill{height:100%;border-radius:3px}
 .card-chevron{font-size:10px;color:var(–t3);transition:transform .25s}
 .card.open .card-chevron{transform:rotate(180deg)}
 .card-extra{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(–border)}
 .card.open .card-extra{display:block}
-.card-extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
-.ce{display:flex;flex-direction:column;gap:2px}
+.ceg{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
 .ce-l{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(–t3)}
-.ce-v{font-size:11px;color:var(–t2)}
+.ce-v{font-size:11px;color:var(–t2);margin-top:2px}
 
-/* ── QUEUE SECTION ── */
-.q-list{padding:10px 16px 4px}
-.q-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.q-lbl{width:26px;font-size:9px;color:var(–t3);text-align:right;flex-shrink:0}
-.q-outer{flex:1;background:#1a1a1a;height:24px;border-radius:2px;overflow:hidden;position:relative}
+/* ── QUEUE VIZ ── */
+.q-list{padding:10px 14px 4px}
+.q-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.q-lbl{width:24px;font-size:8px;color:var(–t3);text-align:right;flex-shrink:0}
+.q-outer{flex:1;background:var(–q-rail);height:22px;border-radius:2px;overflow:hidden;position:relative}
 .q-bar{height:100%;display:flex;position:absolute;top:0;left:0}
 .q-seg{height:100%}
-.q-val{width:52px;text-align:right;font-size:9px;color:var(–t2);font-weight:500}
-.q-leg{display:flex;flex-wrap:wrap;gap:8px 14px;padding:8px 16px 12px}
-.li{display:flex;align-items:center;gap:5px;font-size:9px}
+.q-val{width:48px;text-align:right;font-size:9px;color:var(–t2);font-weight:500}
+.q-leg{display:flex;flex-wrap:wrap;gap:7px 12px;padding:6px 14px 12px}
+.li{display:flex;align-items:center;gap:4px;font-size:9px}
 .ld{width:9px;height:9px;border-radius:2px;flex-shrink:0}
 
-/* ── VERIFY CARDS ── */
-.ver-cards{display:flex;flex-direction:column;gap:1px;background:var(–border);margin-bottom:1px}
-.vc{background:var(–panel);padding:14px 16px}
-.vcl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(–t3);margin-bottom:5px}
-.vcv{font-size:20px;font-weight:600;color:var(–white);margin-bottom:4px}
-.vcn{font-size:9px;color:var(–t3);line-height:1.7}
-.bok{color:var(–pos)}.bko{color:var(–neg)}
-
-/* ── BOTTOM NAV ── */
-.nav{
-position:fixed;bottom:0;left:0;right:0;height:var(–nav);
-background:#000;border-top:1px solid #1a1a1a;
-display:grid;grid-template-columns:repeat(4,1fr);
-z-index:100;
-}
-.nav-btn{
-display:flex;flex-direction:column;align-items:center;justify-content:center;
-gap:3px;border:none;background:none;color:var(–t3);
-font-family:‘IBM Plex Mono’,monospace;font-size:7px;
-text-transform:uppercase;letter-spacing:.07em;cursor:pointer;
-padding:6px 4px;transition:color .15s;
-}
-.nav-btn .icon{font-size:18px;line-height:1}
-.nav-btn.active{color:var(–amb)}
-
-/* ── PANELS ── */
+/* ── NAV ── */
+.nav{position:fixed;bottom:0;left:0;right:0;height:56px;background:var(–nav-bg);border-top:1px solid var(–nav-border);display:grid;grid-template-columns:repeat(4,1fr);z-index:100;transition:background .25s}
+.nb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(–t3);font-family:‘IBM Plex Mono’,monospace;font-size:7px;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;padding:6px 4px;transition:color .15s}
+.nb .ic{font-size:18px;line-height:1}
+.nb.active{color:var(–amb)}
 .pnl{display:none}.pnl.active{display:block}
 </style>
 
 </head>
 <body>
 
-<!-- HEADER -->
-
 <div class="hdr">
-  <div class="hdr-l">
+  <div style="display:flex;align-items:baseline">
     <div class="hdr-logo">REMAKE LIVE</div>
     <div class="hdr-sub">FIFO 2025</div>
   </div>
-  <div class="hdr-val">
-    <div class="hdr-days" id="hDays">—</div>
-    <div class="hdr-dlbl">Délai moyen pondéré</div>
+  <div class="hdr-r">
+    <button class="theme-btn" onclick="toggleTheme()">
+      <span class="theme-icon" id="themeIcon">☀️</span>
+      <span class="theme-lbl" id="themeLbl">Clair</span>
+    </button>
+    <div>
+      <div class="hdr-days" id="hDays">—</div>
+      <div class="hdr-dlbl">Délai moyen</div>
+    </div>
   </div>
 </div>
-
-<!-- SCROLL AREA -->
 
 <div class="scroll" id="scroll">
 
-  <!-- ═══════════════ PANEL: VUE D'ENSEMBLE ═══════════════ -->
+  <!-- ═══ OVERVIEW ═══ -->
 
   <div class="pnl active" id="pnl-overview">
+    <div class="kpi-grid" id="kpiGrid"></div>
 
 ```
-<div class="kpi-grid" id="kpiGrid"></div>
+<div class="sec" style="border-top:none;padding-top:10px">Cash drag — capital âgé de plus de 3 mois dans la file</div>
+<div class="drag-score" id="dragWidget"></div>
 
-<div class="sec">Collecte cumulée vs Equity investie</div>
-<div class="chart-block">
-  <canvas id="cCumul" height="160"></canvas>
-</div>
+<div class="sec">Délai FIFO mensuel vs seuil jouissance 90J</div>
+<div class="chart-block"><canvas id="cDelay" height="110"></canvas></div>
 
-<div class="sec">Délai FIFO mensuel (jours)</div>
-<div class="chart-block">
-  <canvas id="cDelay" height="110"></canvas>
-</div>
+<div class="sec">Collecte cumulée vs equity investie</div>
+<div class="chart-block"><canvas id="cCumul" height="140"></canvas></div>
 
 <div class="sec">File non investie fin de mois</div>
-<div class="chart-block">
-  <canvas id="cQueue" height="100"></canvas>
-</div>
-
-<div class="sec">Equity consommée par millésime</div>
-<div class="chart-block">
-  <canvas id="cStack" height="120"></canvas>
-</div>
+<div class="chart-block"><canvas id="cQueue" height="90"></canvas></div>
 ```
 
   </div>
 
-  <!-- ═══════════════ PANEL: DÉTAIL ═══════════════ -->
+  <!-- ═══ DÉTAIL ═══ -->
 
   <div class="pnl" id="pnl-detail">
-    <div class="cards" id="cardsContainer"></div>
+    <div id="cardsContainer"></div>
   </div>
 
-  <!-- ═══════════════ PANEL: FILE ═══════════════ -->
+  <!-- ═══ FILE ═══ -->
 
   <div class="pnl" id="pnl-queue">
-    <div class="sec" style="border-top:none;padding-top:14px">Composition de la file par millésime — hover/tap</div>
+    <div class="sec" style="border-top:none;padding-top:12px">Composition de la file par millésime</div>
     <div class="q-list" id="queueViz"></div>
     <div class="q-leg" id="queueLeg"></div>
   </div>
 
-  <!-- ═══════════════ PANEL: VÉRIFICATION ═══════════════ -->
+  <!-- ═══ JOUISSANCE ═══ -->
 
-  <div class="pnl" id="pnl-verif">
-    <div class="ver-cards" id="verCards"></div>
-    <div class="sec">File FIFO vs EOP comptable</div>
-    <div class="chart-block">
-      <canvas id="cBal" height="140"></canvas>
-    </div>
+  <div class="pnl" id="pnl-jouissance">
+    <div class="kpi-grid" id="jouKpi" style="grid-template-columns:1fr 1fr"></div>
+
+```
+<div class="sec" style="border-top:none;padding-top:12px">% de la file en cash drag (≥ 3 mois) par mois</div>
+<div class="chart-block"><canvas id="cJouPct" height="120"></canvas></div>
+
+<div class="sec">Fenêtre jouissance (vert) vs cash drag (rouge) — % de la file</div>
+<div class="chart-block"><canvas id="cJouStack" height="120"></canvas></div>
+
+<div class="sec">Délai FIFO mensuel vs seuil 90J</div>
+<div class="chart-block"><canvas id="cJouDelay" height="110"></canvas></div>
+
+<div class="sec">% moyen cumulé en drag sur l'année</div>
+<div class="chart-block"><canvas id="cJouCumul" height="100"></canvas></div>
+
+<div style="background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;font-size:9px;color:var(--t3);line-height:1.9;transition:background .25s">
+  <span style="color:var(--pos)">■</span> Capital &lt; 3 mois &nbsp;·&nbsp;
+  <span style="color:var(--neg)">■</span> Cash drag ≥ 3 mois &nbsp;·&nbsp;
+  Hypothèse 5.5% rendement brut annuel
+</div>
+```
+
   </div>
 
 </div>
 
-<!-- BOTTOM NAV -->
-
 <nav class="nav">
-  <button class="nav-btn active" onclick="sw('overview',this)" id="btn-overview">
-    <span class="icon">◈</span><span>Vue</span>
-  </button>
-  <button class="nav-btn" onclick="sw('detail',this)" id="btn-detail">
-    <span class="icon">☰</span><span>Détail</span>
-  </button>
-  <button class="nav-btn" onclick="sw('queue',this)" id="btn-queue">
-    <span class="icon">▦</span><span>File</span>
-  </button>
-  <button class="nav-btn" onclick="sw('verif',this)" id="btn-verif">
-    <span class="icon">✓</span><span>Vérif</span>
-  </button>
+  <button class="nb active" onclick="sw('overview',this)"><span class="ic">◈</span><span>Vue</span></button>
+  <button class="nb" onclick="sw('detail',this)"><span class="ic">☰</span><span>Détail</span></button>
+  <button class="nb" onclick="sw('queue',this)"><span class="ic">▦</span><span>File</span></button>
+  <button class="nb" onclick="sw('jouissance',this)"><span class="ic">⏱</span><span>Jouissance</span></button>
 </nav>
 
 <script>
 // ══════════════════════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════════════════════
-const BOP_SEED = 12217707.01;
-const raw = [
-  {m:'Jan', bop:12217707.01, collecte:20517300,    dette:0,            acq_live:0,           acq_soc:248008.68,   eop:25571192.50},
-  {m:'Fév', bop:25571192.50, collecte:21815148,    dette:0,            acq_live:15920170.92, acq_soc:762328.45,   eop:26034334.17},
-  {m:'Mar', bop:26034334.17, collecte:31229136,    dette:0,            acq_live:38876168.49, acq_soc:329225.37,   eop:21431295.55},
-  {m:'Avr', bop:21431295.55, collecte:26058348,    dette:0,            acq_live:0,           acq_soc:0,           eop:30398473.59},
-  {m:'Mai', bop:30398473.59, collecte:11911356,    dette:0,            acq_live:0,           acq_soc:565837.65,   eop:40198081.78},
-  {m:'Jun', bop:40198081.78, collecte:14265516,    dette:0,            acq_live:20463479.86, acq_soc:1172366.99,  eop:16212110.71},
-  {m:'Juil',bop:16212110.71, collecte:13993176,    dette:0,            acq_live:0,           acq_soc:1056669.10,  eop:27077784.46},
-  {m:'Aoû', bop:27077784.46, collecte:8765268,     dette:0,            acq_live:32160972.50, acq_soc:481836.38,   eop:25267985.07},
-  {m:'Sep', bop:25267985.07, collecte:9786696,     dette:20000000,     acq_live:46354277.57, acq_soc:251551.50,   eop:22613606.89},
-  {m:'Oct', bop:22613606.89, collecte:16059492,    dette:0,            acq_live:0,           acq_soc:1172568.77,  eop:35010128.68},
-  {m:'Nov', bop:35010128.68, collecte:11623308,    dette:0,            acq_live:9081505.43,  acq_soc:514230.56,   eop:35010128.68},
-  {m:'Déc', bop:35010128.68, collecte:12577212,    dette:121575223.47, acq_live:139215659.00,acq_soc:1130865.73,  eop:23764748.04},
-].map(d=>({...d, acq: d.acq_live+d.acq_soc}));
+const BOP_SEED=12217707.01;
+const raw=[
+  {m:'Jan', bop:12217707.01,collecte:20517300,  dette:0,           acq_live:0,          acq_soc:248008.68,  eop:25571192.50},
+  {m:'Fév', bop:25571192.50,collecte:21815148,  dette:0,           acq_live:15920170.92,acq_soc:762328.45,  eop:26034334.17},
+  {m:'Mar', bop:26034334.17,collecte:31229136,  dette:0,           acq_live:38876168.49,acq_soc:329225.37,  eop:21431295.55},
+  {m:'Avr', bop:21431295.55,collecte:26058348,  dette:0,           acq_live:0,          acq_soc:0,          eop:30398473.59},
+  {m:'Mai', bop:30398473.59,collecte:11911356,  dette:0,           acq_live:0,          acq_soc:565837.65,  eop:40198081.78},
+  {m:'Jun', bop:40198081.78,collecte:14265516,  dette:0,           acq_live:20463479.86,acq_soc:1172366.99, eop:16212110.71},
+  {m:'Juil',bop:16212110.71,collecte:13993176,  dette:0,           acq_live:0,          acq_soc:1056669.10, eop:27077784.46},
+  {m:'Aoû', bop:27077784.46,collecte:8765268,   dette:0,           acq_live:32160972.50,acq_soc:481836.38,  eop:25267985.07},
+  {m:'Sep', bop:25267985.07,collecte:9786696,   dette:20000000,    acq_live:46354277.57,acq_soc:251551.50,  eop:22613606.89},
+  {m:'Oct', bop:22613606.89,collecte:16059492,  dette:0,           acq_live:0,          acq_soc:1172568.77, eop:35010128.68},
+  {m:'Nov', bop:35010128.68,collecte:11623308,  dette:0,           acq_live:9081505.43, acq_soc:514230.56,  eop:35010128.68},
+  {m:'Déc', bop:35010128.68,collecte:12577212,  dette:121575223.47,acq_live:139215659,  acq_soc:1130865.73, eop:23764748.04},
+].map(d=>({...d,acq:d.acq_live+d.acq_soc}));
 
 // ══════════════════════════════════════════════════════════════
 // FIFO ENGINE
 // ══════════════════════════════════════════════════════════════
 function runFIFO(){
-  let queue=[{amount:BOP_SEED,label:'BOP',monthIdx:0}];
-  let carry=0;
+  let queue=[{amount:BOP_SEED,label:'BOP',monthIdx:0}],carry=0;
   const res=[],snaps=[];
   for(let t=0;t<raw.length;t++){
     const d=raw[t];
     queue.push({amount:d.collecte,label:d.m,monthIdx:t});
-    const carryIn=carry;
-    const totalDebtAvail=d.dette+carry;
-    const equityImmo=Math.max(0,d.acq-totalDebtAvail);
-    const carryOut=Math.max(0,totalDebtAvail-d.acq);
-    const detteNette=Math.min(totalDebtAvail,d.acq);
+    const totalDebt=d.dette+carry,equityImmo=Math.max(0,d.acq-totalDebt);
+    const carryIn=carry,carryOut=Math.max(0,totalDebt-d.acq);
     carry=carryOut;
-    let toConsume=equityImmo,wSum=0,consumed=0;
-    const batches=[];
-    while(toConsume>1e-6&&queue.length>0){
-      const o=queue[0];
-      const age=t-o.monthIdx;
-      const take=Math.min(o.amount,toConsume);
-      wSum+=take*age;consumed+=take;
-      batches.push({amount:take,label:o.label,monthIdx:o.monthIdx,age});
-      o.amount-=take;
-      if(o.amount<1e-6)queue.shift();
-      toConsume-=take;
+    let toc=equityImmo,wSum=0,consumed=0;const batches=[];
+    while(toc>1e-6&&queue.length){
+      const o=queue[0],age=t-o.monthIdx,take=Math.min(o.amount,toc);
+      wSum+=take*age;consumed+=take;batches.push({amount:take,label:o.label,age});
+      o.amount-=take;if(o.amount<1e-6)queue.shift();toc-=take;
     }
     const avgM=consumed>0?wSum/consumed:null;
     const avgD=avgM!=null?Math.round(avgM*30.4):null;
-    const qT=queue.reduce((s,b)=>s+b.amount,0);
-    res.push({...d,t,carryIn,detteNette,equityImmo,carryOut,consumed,batches,avgM,avgD,qT});
+    res.push({...d,t,carryIn,equityImmo,carryOut,consumed,batches,avgM,avgD,qT:queue.reduce((s,b)=>s+b.amount,0)});
     snaps.push(queue.map(b=>({...b})));
   }
   return{res,snaps,finalQueue:queue.slice()};
 }
-const {res,snaps,finalQueue}=runFIFO();
+const{res,snaps,finalQueue}=runFIFO();
+
+// ══════════════════════════════════════════════════════════════
+// JOUISSANCE PRE-COMPUTE
+// ══════════════════════════════════════════════════════════════
+const JOUI_M=3,YIELD=0.055;
+const jouSnaps=(()=>{
+  const q2=[{amount:BOP_SEED,t:-1}];let c2=0;const ds=[];
+  for(let t=0;t<12;t++){
+    q2.push({amount:raw[t].collecte,t});
+    const da=raw[t].dette+c2,eq=Math.max(0,raw[t].acq-da);
+    c2=Math.max(0,da-raw[t].acq);
+    let toc=eq;
+    while(toc>1e-6&&q2.length){const o=q2[0],tk=Math.min(o.amount,toc);o.amount-=tk;if(o.amount<1e-6)q2.shift();toc-=tk;}
+    const tot=q2.reduce((s,b)=>s+b.amount,0);
+    const old=q2.filter(b=>(t-b.t)>=JOUI_M).reduce((s,b)=>s+b.amount,0);
+    ds.push({tot,old,nw:tot-old,pct:tot>0?old/tot*100:0});
+  }
+  return ds;
+})();
 
 // ══════════════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════════════
-const fmtM  = v=>(v/1e6).toFixed(1)+'M';
-const fmtM2 = v=>(v/1e6).toFixed(2)+'M€';
-const fmtK  = v=>v>=1e6?fmtM2(v):(v/1e3).toFixed(0)+'k€';
+const fmtM=v=>(v/1e6).toFixed(1)+'M';
+const fmtM2=v=>(v/1e6).toFixed(2)+'M€';
 const months=raw.map(d=>d.m);
 const totalCollecte=raw.reduce((s,d)=>s+d.collecte,0);
 const totalAcq=raw.reduce((s,d)=>s+d.acq,0);
@@ -281,136 +271,135 @@ const totalDette=raw.reduce((s,d)=>s+d.dette,0);
 const totalEquity=res.reduce((s,r)=>s+r.equityImmo,0);
 const totalConsumed=res.reduce((s,r)=>s+r.consumed,0);
 const remaining=finalQueue.reduce((s,b)=>s+b.amount,0);
-let tw=0,tc=0;
-res.forEach(r=>{tw+=r.consumed*(r.avgM||0);tc+=r.consumed;});
-const gAvgM=tc>0?tw/tc:0;
-const gAvgD=Math.round(gAvgM*30.4);
-
+let tw=0,tc2=0;res.forEach(r=>{tw+=r.consumed*(r.avgM||0);tc2+=r.consumed;});
+const gAvgM=tc2>0?tw/tc2:0,gAvgD=Math.round(gAvgM*30.4);
 document.getElementById('hDays').textContent=gAvgD+'J';
 
-// ══════════════════════════════════════════════════════════════
-// COLORS
-// ══════════════════════════════════════════════════════════════
-const COLS=[
-  'rgba(240,165,0,0.90)',   // BOP
-  'rgba(74,170,116,0.85)',  // Jan
-  'rgba(85,150,210,0.85)',  // Fév
-  'rgba(210,90,90,0.85)',   // Mar
-  'rgba(170,100,210,0.85)', // Avr
-  'rgba(240,200,50,0.85)',  // Mai
-  'rgba(50,195,190,0.85)',  // Jun
-  'rgba(230,130,50,0.85)',  // Juil
-  'rgba(130,190,80,0.85)',  // Aoû
-  'rgba(100,160,220,0.85)', // Sep
-  'rgba(210,80,140,0.85)',  // Oct
-  'rgba(160,220,180,0.85)', // Nov
-  'rgba(255,165,100,0.85)', // Déc
-];
+const COLS=['rgba(240,165,0,.9)','rgba(74,170,116,.85)','rgba(85,150,210,.85)','rgba(210,90,90,.85)','rgba(170,100,210,.85)','rgba(240,200,50,.85)','rgba(50,195,190,.85)','rgba(230,130,50,.85)','rgba(130,190,80,.85)','rgba(100,160,220,.85)','rgba(210,80,140,.85)','rgba(160,220,180,.85)','rgba(255,165,100,.85)'];
 const allLbls=['BOP',...months];
-const getC=lbl=>COLS[allLbls.indexOf(lbl)]||'rgba(90,90,90,0.4)';
+const getC=lbl=>COLS[allLbls.indexOf(lbl)]||'rgba(90,90,90,.4)';
 
 // ══════════════════════════════════════════════════════════════
-// KPI GRID
+// THEME SYSTEM
 // ══════════════════════════════════════════════════════════════
-const kpis=[
-  {l:'Délai moyen',    v:gAvgD+'J',               s:gAvgM.toFixed(1)+'m',        c:'amb'},
-  {l:'Collecte tot.',  v:fmtM(totalCollecte)+'€', s:'+ seed '+fmtM(BOP_SEED)+'€',c:''},
-  {l:'Equity immo',    v:fmtM(totalEquity)+'€',   s:'Acq − Dette',               c:'pos'},
-  {l:'% déployé',      v:(totalConsumed/(BOP_SEED+totalCollecte)*100).toFixed(0)+'%',s:fmtM(totalConsumed)+'€', c:'pos'},
-  {l:'File résid.',    v:fmtM(remaining)+'€',      s:'Non investi',               c:'neg'},
-  {l:'EOP déc.',       v:fmtM(raw[11].eop)+'€',   s:'31/12/2025',                c:'amb'},
-];
-document.getElementById('kpiGrid').innerHTML=kpis.map(k=>`
-  <div class="kc">
-    <div class="kl">${k.l}</div>
-    <div class="kv ${k.c}">${k.v}</div>
-    <div class="ks">${k.s}</div>
-  </div>`).join('');
+let isDark=true;
+const th=()=>isDark
+  ?{grid:'#1a1a1a',tick:'#555',leg:'#555',tipBg:'#000',tipBorder:'#2a2a2a',tipTitle:'#787878',tipBody:'#c8c8c8'}
+  :{grid:'#e6e6e6',tick:'#aaa',leg:'#999',tipBg:'#fff',tipBorder:'#ddd',tipTitle:'#bbb',tipBody:'#333'};
+
+const mkTip=()=>{const c=th();return{backgroundColor:c.tipBg,borderColor:c.tipBorder,borderWidth:1,titleColor:c.tipTitle,bodyColor:c.tipBody,padding:9,cornerRadius:2,titleFont:{family:"'IBM Plex Mono',monospace",size:10},bodyFont:{family:"'IBM Plex Mono',monospace",size:10}};};
+const grd=()=>({color:th().grid,drawBorder:false});
+const tkC=()=>({color:th().tick,maxRotation:0});
+const lgC=()=>({boxWidth:7,padding:9,color:th().leg,font:{size:9}});
+
+function toggleTheme(){
+  isDark=!isDark;
+  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
+  document.getElementById('themeIcon').textContent=isDark?'☀️':'🌙';
+  document.getElementById('themeLbl').textContent=isDark?'Clair':'Sombre';
+  Chart.defaults.color=isDark?'#555':'#aaa';
+  // rebuild all rendered charts
+  Object.entries(chartI).forEach(([id,c])=>{c.destroy();delete chartI[id];});
+  buildOverviewCharts();
+  buildDragWidget();
+  Object.keys(_init).forEach(id=>initPanel(id));
+}
 
 // ══════════════════════════════════════════════════════════════
-// CHART DEFAULTS
+// KPIs
 // ══════════════════════════════════════════════════════════════
-Chart.defaults.color='#444';
+const worstDragI=jouSnaps.reduce((bi,d,i)=>d.pct>jouSnaps[bi].pct?i:bi,0);
+const moisEnDrag=jouSnaps.filter(d=>d.old>1e3).length;
+document.getElementById('kpiGrid').innerHTML=[
+  {l:'Délai moyen',  v:gAvgD+'J',                                                   s:'vs seuil 90J',             c:gAvgD<90?'pos':'neg'},
+  {l:'% déployé',    v:(totalConsumed/(BOP_SEED+totalCollecte)*100).toFixed(0)+'%',  s:fmtM(totalConsumed)+'€',    c:'pos'},
+  {l:'File résid.',  v:((remaining/(BOP_SEED+totalCollecte))*100).toFixed(1)+'%',    s:'Non investi 31/12',         c:'neg'},
+  {l:'Collecte',     v:fmtM(totalCollecte)+'€',                                      s:'+ seed '+fmtM(BOP_SEED)+'€',c:''},
+  {l:'Equity immo',  v:fmtM(totalEquity)+'€',                                        s:'Acq − Dette',              c:'pos'},
+  {l:'EOP Déc',      v:fmtM(raw[11].eop)+'€',                                        s:'31/12/2025',               c:'amb'},
+].map(k=>`<div class="kc"><div class="kl">${k.l}</div><div class="kv ${k.c}">${k.v}</div><div class="ks">${k.s}</div></div>`).join('');
+
+document.getElementById('jouKpi').innerHTML=[
+  {l:'Pire mois (drag)', v:months[worstDragI],            s:Math.round(jouSnaps[worstDragI].pct)+'% de la file âgée', c:'neg'},
+  {l:'Mois en drag',     v:moisEnDrag+'/12',               s:'Au moins 1€ âgé ≥3 mois',                                c:'neg'},
+  {l:'File résid. 31/12',v:((remaining/(BOP_SEED+totalCollecte))*100).toFixed(1)+'%', s:'Du total collecté',          c:'neg'},
+  {l:'Délai moyen',      v:gAvgD+'J',                      s:'Vs seuil jouissance 90J',                                 c:gAvgD<90?'pos':'neg'},
+].map(k=>`<div class="kc"><div class="kl">${k.l}</div><div class="kv ${k.c}">${k.v}</div><div class="ks">${k.s}</div></div>`).join('');
+
+// ══════════════════════════════════════════════════════════════
+// DRAG WIDGET (pure CSS, no canvas)
+// ══════════════════════════════════════════════════════════════
+function buildDragWidget(){
+  document.getElementById('dragWidget').innerHTML=`
+  <div class="ds-head">
+    <div class="ds-title">% capital en drag chaque fin de mois</div>
+    <div class="ds-worst">Pire : <b style="color:var(--neg)">${Math.round(jouSnaps[worstDragI].pct)}%</b> ${months[worstDragI]}</div>
+  </div>
+  ${jouSnaps.map((d,i)=>{
+    const col=d.pct>30?'var(--neg)':d.pct>5?'var(--amb)':'var(--t3)';
+    return `<div class="ds-row">
+      <div class="ds-lbl">${months[i]}</div>
+      <div class="ds-track">
+        <div class="ds-ok" style="width:${(100-d.pct).toFixed(1)}%"></div>
+        <div class="ds-bad" style="width:${d.pct.toFixed(1)}%"></div>
+      </div>
+      <div class="ds-pct" style="color:${col}">${d.pct>0.5?Math.round(d.pct)+'%':'—'}</div>
+    </div>`;
+  }).join('')}`;
+}
+buildDragWidget();
+
+// ══════════════════════════════════════════════════════════════
+// CHART STORE + OVERVIEW CHARTS (active panel = init now)
+// ══════════════════════════════════════════════════════════════
+const chartI={};
 Chart.defaults.font.family="'IBM Plex Mono',monospace";
 Chart.defaults.font.size=9;
-const grd={color:'#191919',drawBorder:false};
-const tip={
-  backgroundColor:'#000',borderColor:'#2a2a2a',borderWidth:1,
-  titleColor:'#787878',bodyColor:'#c8c8c8',padding:10,cornerRadius:2,
-  titleFont:{family:"'IBM Plex Mono',monospace",size:10},
-  bodyFont:{family:"'IBM Plex Mono',monospace",size:10},
-};
+Chart.defaults.color='#555';
 
-// ══════════════════════════════════════════════════════════════
-// CHART: Cumul
-// ══════════════════════════════════════════════════════════════
-(()=>{
-  let cC=0,cE=0;
-  const dC=[],dE=[],dS=[];
-  res.forEach(r=>{cC+=r.collecte;cE+=r.equityImmo;
-    dC.push(BOP_SEED+cC);dE.push(cE);dS.push((BOP_SEED+cC)-cE);});
-  new Chart(document.getElementById('cCumul'),{
-    type:'line',
-    data:{labels:months,datasets:[
-      {label:'Seed+Collecte cum.',data:dC,borderColor:'rgba(74,170,116,.9)',borderWidth:2,pointRadius:3,pointBackgroundColor:'rgba(74,170,116,.9)',fill:false,tension:.3},
-      {label:'Equity investie cum.',data:dE,borderColor:'rgba(240,165,0,.9)',borderWidth:2,pointRadius:3,pointBackgroundColor:'rgba(240,165,0,.9)',fill:false,tension:.3},
-      {label:'Solde non investi',data:dS,borderColor:'rgba(224,80,80,.7)',backgroundColor:'rgba(224,80,80,.07)',borderWidth:1.5,borderDash:[5,3],pointRadius:2,fill:true,tension:.3},
-    ]},
-    options:{responsive:true,plugins:{
-      legend:{labels:{boxWidth:7,padding:10,color:'#555',font:{size:9}}},
-      tooltip:{...tip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtM2(ctx.raw)}`}}
-    },scales:{x:{grid:grd,ticks:{color:'#444',maxRotation:0}},y:{grid:grd,ticks:{callback:v=>fmtM(v),color:'#444'}}}}
+function buildOverviewCharts(){
+  // Delay + 90J line
+  chartI['cDelay']=new Chart(document.getElementById('cDelay'),{
+    type:'bar',
+    data:{labels:months,datasets:[{
+      label:'Délai FIFO',
+      data:res.map(r=>r.avgD),
+      backgroundColor:res.map(r=>r.avgD==null?'rgba(120,120,120,.25)':r.avgD<90?'rgba(76,175,125,.75)':'rgba(224,80,80,.75)'),
+      borderRadius:3,borderWidth:0,
+    }]},
+    plugins:[{id:'l90',afterDraw(c){
+      const{ctx,scales:{y,x}}=c,yp=y.getPixelForValue(90);
+      ctx.save();ctx.beginPath();ctx.moveTo(x.left,yp);ctx.lineTo(x.right,yp);
+      ctx.strokeStyle='rgba(240,165,0,.85)';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);ctx.stroke();
+      ctx.fillStyle=isDark?'rgba(240,165,0,.7)':'rgba(140,90,0,.85)';ctx.font='9px IBM Plex Mono,monospace';
+      ctx.fillText('90J jouissance',x.right-88,yp-4);ctx.restore();
+    }}],
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...mkTip(),callbacks:{label:x=>x.raw==null?' —':` ${x.raw}J`}}},
+      scales:{x:{grid:grd(),ticks:tkC()},y:{grid:grd(),suggestedMax:150,ticks:{...tkC(),callback:v=>v+'J'}}}}
   });
-})();
-
-// ══════════════════════════════════════════════════════════════
-// CHART: Delay
-// ══════════════════════════════════════════════════════════════
-new Chart(document.getElementById('cDelay'),{
-  type:'bar',
-  data:{labels:months,datasets:[{
-    label:'Délai (j)',
-    data:res.map(r=>r.avgD),
-    backgroundColor:res.map(r=>r.avgD==null?'rgba(50,50,50,.5)':r.avgD<45?'rgba(76,175,125,.7)':r.avgD<90?'rgba(240,165,0,.7)':'rgba(224,80,80,.7)'),
-    borderRadius:2,borderWidth:0,
-  }]},
-  options:{responsive:true,plugins:{
-    legend:{display:false},
-    tooltip:{...tip,callbacks:{label:ctx=>ctx.raw==null?' —':` ${ctx.raw}J`}}
-  },scales:{x:{grid:grd,ticks:{color:'#444',maxRotation:0}},y:{grid:grd,ticks:{callback:v=>v+'J',color:'#444'},suggestedMax:150}}}
-});
-
-// ══════════════════════════════════════════════════════════════
-// CHART: Queue
-// ══════════════════════════════════════════════════════════════
-new Chart(document.getElementById('cQueue'),{
-  type:'bar',
-  data:{labels:months,datasets:[{
-    label:'File',data:snaps.map(q=>q.reduce((s,b)=>s+b.amount,0)),
-    backgroundColor:'rgba(102,153,187,.3)',borderColor:'rgba(102,153,187,.5)',borderWidth:1,borderRadius:2,
-  }]},
-  options:{responsive:true,plugins:{
-    legend:{display:false},
-    tooltip:{...tip,callbacks:{label:ctx=>` ${fmtM2(ctx.raw)}`}}
-  },scales:{x:{grid:grd,ticks:{color:'#444',maxRotation:0}},y:{grid:grd,ticks:{callback:v=>fmtM(v),color:'#444'}}}}
-});
-
-// ══════════════════════════════════════════════════════════════
-// CHART: Stacked
-// ══════════════════════════════════════════════════════════════
-const sDS=allLbls.map((lbl,i)=>({
-  label:lbl,
-  data:res.map(r=>{const b=r.batches.find(x=>x.label===lbl);return b?b.amount:0;}),
-  backgroundColor:COLS[i]||'rgba(90,90,90,.4)',
-  borderWidth:0,stack:'eq',
-}));
-new Chart(document.getElementById('cStack'),{
-  type:'bar',data:{labels:months,datasets:sDS},
-  options:{responsive:true,plugins:{
-    legend:{labels:{boxWidth:7,padding:8,color:'#555',font:{size:8},filter:item=>sDS[item.datasetIndex].data.some(v=>v>0)}},
-    tooltip:{...tip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtM2(ctx.raw)}`}}
-  },scales:{x:{grid:grd,stacked:true,ticks:{color:'#444',maxRotation:0}},y:{grid:grd,stacked:true,ticks:{callback:v=>fmtM(v),color:'#444'}}}}
-});
+  // Cumul
+  (()=>{
+    let cC=0,cE=0;const dC=[],dE=[],dS=[];
+    res.forEach(r=>{cC+=r.collecte;cE+=r.equityImmo;dC.push(BOP_SEED+cC);dE.push(cE);dS.push((BOP_SEED+cC)-cE);});
+    chartI['cCumul']=new Chart(document.getElementById('cCumul'),{
+      type:'line',
+      data:{labels:months,datasets:[
+        {label:'Seed+Collecte',data:dC,borderColor:'rgba(74,170,116,.9)',borderWidth:2,pointRadius:3,pointBackgroundColor:'rgba(74,170,116,.9)',fill:false,tension:.3},
+        {label:'Equity investie',data:dE,borderColor:'rgba(240,165,0,.9)',borderWidth:2,pointRadius:3,pointBackgroundColor:'rgba(240,165,0,.9)',fill:false,tension:.3},
+        {label:'Solde non investi',data:dS,borderColor:'rgba(224,80,80,.65)',backgroundColor:'rgba(224,80,80,.07)',borderWidth:1.5,borderDash:[5,3],pointRadius:2,fill:true,tension:.3},
+      ]},
+      options:{responsive:true,plugins:{legend:{labels:lgC()},tooltip:{...mkTip(),callbacks:{label:x=>` ${x.dataset.label}: ${fmtM2(x.raw)}`}}},
+        scales:{x:{grid:grd(),ticks:tkC()},y:{grid:grd(),ticks:{...tkC(),callback:v=>fmtM(v)}}}}
+    });
+  })();
+  chartI['cQueue']=new Chart(document.getElementById('cQueue'),{
+    type:'bar',
+    data:{labels:months,datasets:[{label:'File',data:snaps.map(q=>q.reduce((s,b)=>s+b.amount,0)),backgroundColor:'rgba(102,153,187,.35)',borderColor:'rgba(102,153,187,.6)',borderWidth:1,borderRadius:2}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...mkTip(),callbacks:{label:x=>` ${fmtM2(x.raw)}`}}},
+      scales:{x:{grid:grd(),ticks:tkC()},y:{grid:grd(),ticks:{...tkC(),callback:v=>fmtM(v)}}}}
+  });
+}
+buildOverviewCharts();
 
 // ══════════════════════════════════════════════════════════════
 // MONTH CARDS
@@ -418,122 +407,116 @@ new Chart(document.getElementById('cStack'),{
 const maxEq=Math.max(...res.map(r=>r.equityImmo));
 document.getElementById('cardsContainer').innerHTML=res.map((r,i)=>{
   const noAcq=r.equityImmo<1e-3;
-  const tag=noAcq?`<span class="card-tag tag-n">AUCUNE ACQ</span>`:
-    r.avgD<45?`<span class="card-tag tag-r">RAPIDE</span>`:
-    r.avgD<90?`<span class="card-tag tag-m">MOYEN</span>`:
-              `<span class="card-tag tag-l">LENT</span>`;
-  const delayTxt=noAcq?`<span style="color:var(--t3)">—</span>`:
-    `<span style="color:${r.avgD<45?'var(--pos)':r.avgD<90?'var(--amb)':'var(--neg)'}">${r.avgD}J</span>`;
-  const barW=maxEq>0?(r.equityImmo/maxEq*100).toFixed(1):0;
-  const barCol=noAcq?'#2a2a2a':r.avgD<45?'var(--pos)':r.avgD<90?'var(--amb)':'var(--neg)';
-
+  const tag=noAcq?`<span class="ctag tag-n">AUCUNE ACQ</span>`:r.avgD<90?`<span class="ctag tag-g">DANS FENÊTRE</span>`:`<span class="ctag tag-r">HORS FENÊTRE</span>`;
+  const delayTxt=noAcq?`<span style="color:var(--t3)">—</span>`:`<span style="color:${r.avgD<90?'var(--pos)':'var(--neg)'}">${r.avgD}J</span>`;
+  const barCol=noAcq?'var(--border)':r.avgD<90?'var(--pos)':'var(--neg)';
   return `<div class="card" id="card-${i}" onclick="toggleCard(${i})">
-    <div class="card-head">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="card-month">${r.m}</div>
-        ${tag}
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        ${delayTxt}
-        <span class="card-chevron" id="chev-${i}">▾</span>
-      </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center"><div class="card-month">${r.m}</div>${tag}</div>
+      <div style="display:flex;align-items:center;gap:8px">${delayTxt}<span class="card-chevron" id="chev-${i}">▾</span></div>
     </div>
-    <div class="card-bar"><div class="card-bar-fill" style="width:${barW}%;background:${barCol}"></div></div>
+    <div class="card-bar"><div class="card-bar-fill" style="width:${maxEq>0?(r.equityImmo/maxEq*100).toFixed(1):0}%;background:${barCol}"></div></div>
     <div class="card-body">
-      <div class="cf">
-        <div class="cf-l">BOP</div>
-        <div class="cf-v" style="color:var(--t2)">${fmtM2(r.bop)}</div>
-      </div>
-      <div class="cf">
-        <div class="cf-l">Collecte</div>
-        <div class="cf-v pos">${fmtM2(r.collecte)}</div>
-      </div>
-      <div class="cf">
-        <div class="cf-l">Acq totale</div>
-        <div class="cf-v" style="color:${r.acq>0?'var(--text)':'var(--t3)'}">${r.acq>0?fmtM2(r.acq):'—'}</div>
-      </div>
-      <div class="cf">
-        <div class="cf-l">Equity immo</div>
-        <div class="cf-v pos">${r.equityImmo>0?fmtM2(r.equityImmo):'<span style="color:var(--t3)">—</span>'}</div>
-      </div>
+      <div><div class="cf-l">BOP</div><div class="cf-v" style="color:var(--t2)">${fmtM2(r.bop)}</div></div>
+      <div><div class="cf-l">Collecte</div><div class="cf-v pos">${fmtM2(r.collecte)}</div></div>
+      <div><div class="cf-l">Acq totale</div><div class="cf-v">${r.acq>0?fmtM2(r.acq):'<span style="color:var(--t3)">—</span>'}</div></div>
+      <div><div class="cf-l">Equity immo</div><div class="cf-v pos">${r.equityImmo>0?fmtM2(r.equityImmo):'<span style="color:var(--t3)">—</span>'}</div></div>
     </div>
     <div class="card-extra" id="extra-${i}">
-      <div class="card-extra-grid">
-        <div class="ce"><div class="ce-l">Acq Live</div><div class="ce-v">${r.acq_live>0?'−'+fmtM2(r.acq_live):'—'}</div></div>
-        <div class="ce"><div class="ce-l">Acq Social</div><div class="ce-v">${r.acq_soc>0?'−'+fmtM2(r.acq_soc):'—'}</div></div>
-        <div class="ce"><div class="ce-l">Dette</div><div class="ce-v" style="color:${r.dette>0?'var(--amb)':'var(--t3)'}">${r.dette>0?fmtM2(r.dette):'—'}</div></div>
-        <div class="ce"><div class="ce-l">Carry in</div><div class="ce-v" style="color:${r.carryIn>0?'var(--amb)':'var(--t3)'}">${r.carryIn>0?fmtM2(r.carryIn):'—'}</div></div>
-        <div class="ce"><div class="ce-l">Carry out</div><div class="ce-v" style="color:${r.carryOut>0?'var(--amb)':'var(--t3)'}">${r.carryOut>0?fmtM2(r.carryOut):'—'}</div></div>
-        <div class="ce"><div class="ce-l">Consommé</div><div class="ce-v">${r.consumed>0?fmtM2(r.consumed):'—'}</div></div>
-        <div class="ce"><div class="ce-l">File fin mois</div><div class="ce-v" style="color:var(--neu)">${fmtM2(r.qT)}</div></div>
-        <div class="ce"><div class="ce-l">EOP</div><div class="ce-v amb">${fmtM2(r.eop)}</div></div>
+      <div class="ceg">
+        <div><div class="ce-l">Acq Live</div><div class="ce-v">${r.acq_live>0?'−'+fmtM2(r.acq_live):'—'}</div></div>
+        <div><div class="ce-l">Acq Social</div><div class="ce-v">${r.acq_soc>0?'−'+fmtM2(r.acq_soc):'—'}</div></div>
+        <div><div class="ce-l">Dette</div><div class="ce-v" style="color:${r.dette>0?'var(--amb)':'var(--t3)'}">${r.dette>0?fmtM2(r.dette):'—'}</div></div>
+        <div><div class="ce-l">Carry in/out</div><div class="ce-v" style="color:${r.carryIn>0||r.carryOut>0?'var(--amb)':'var(--t3)'}">${r.carryIn>0?'+'+fmtM2(r.carryIn):r.carryOut>0?fmtM2(r.carryOut)+' out':'—'}</div></div>
+        <div><div class="ce-l">File fin mois</div><div class="ce-v neu">${fmtM2(r.qT)}</div></div>
+        <div><div class="ce-l">EOP</div><div class="ce-v amb">${fmtM2(r.eop)}</div></div>
       </div>
-      ${r.batches.length>0?`<div style="margin-top:10px;font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Millésimes consommés</div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px">${r.batches.map(b=>`<span style="background:#1a1a1a;border-left:2px solid ${getC(b.label)};padding:3px 8px;font-size:9px;color:var(--t2)">${b.label} · ${fmtM2(b.amount)} · ${b.age}m</span>`).join('')}</div>`:''}
+      ${r.batches.length?`<div style="margin-top:8px;font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Millésimes consommés</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${r.batches.map(b=>`<span style="background:var(--batch-bg);border-left:2px solid ${getC(b.label)};padding:3px 7px;font-size:8px;color:var(--t2)">${b.label} · ${fmtM2(b.amount)} · ${b.age}m</span>`).join('')}</div>`:''}
     </div>
   </div>`;
 }).join('');
-
-function toggleCard(i){
-  const card=document.getElementById('card-'+i);
-  card.classList.toggle('open');
-}
+function toggleCard(i){document.getElementById('card-'+i).classList.toggle('open');}
 
 // ══════════════════════════════════════════════════════════════
 // QUEUE VIZ
 // ══════════════════════════════════════════════════════════════
 const maxQ=Math.max(...snaps.map(q=>q.reduce((s,b)=>s+b.amount,0)));
 document.getElementById('queueViz').innerHTML=snaps.map((snap,t)=>{
-  const total=snap.reduce((s,b)=>s+b.amount,0);
-  const pct=maxQ>0?(total/maxQ*100).toFixed(1):0;
-  const segs=snap.map(b=>{
-    const w=total>0?(b.amount/total*100).toFixed(3):0;
-    return `<div class="q-seg" style="width:${w}%;background:${getC(b.label)}" title="${b.label}: ${fmtM2(b.amount)}"></div>`;
-  }).join('');
-  return `<div class="q-row">
-    <div class="q-lbl">${months[t]}</div>
-    <div class="q-outer"><div class="q-bar" style="width:${pct}%">${segs}</div></div>
-    <div class="q-val">${fmtM(total)}€</div>
-  </div>`;
+  const tot=snap.reduce((s,b)=>s+b.amount,0),pct=maxQ>0?(tot/maxQ*100).toFixed(1):0;
+  const segs=snap.map(b=>`<div class="q-seg" style="width:${tot>0?(b.amount/tot*100).toFixed(2):0}%;background:${getC(b.label)}" title="${b.label}:${fmtM2(b.amount)}"></div>`).join('');
+  return `<div class="q-row"><div class="q-lbl">${months[t]}</div><div class="q-outer"><div class="q-bar" style="width:${pct}%">${segs}</div></div><div class="q-val">${fmtM(tot)}€</div></div>`;
 }).join('');
-document.getElementById('queueLeg').innerHTML=allLbls.map((lbl,i)=>`
-  <div class="li"><div class="ld" style="background:${COLS[i]}"></div>
-  <span style="color:${COLS[i].replace(/[\d.]+\)$/,'1)')}">${lbl}</span></div>`).join('');
+document.getElementById('queueLeg').innerHTML=allLbls.map((lbl,i)=>`<div class="li"><div class="ld" style="background:${COLS[i]}"></div><span style="color:${COLS[i].replace(/[\d.]+\)$/,'1)')}">${lbl}</span></div>`).join('');
 
 // ══════════════════════════════════════════════════════════════
-// VERIFICATION
+// LAZY PANEL INIT
 // ══════════════════════════════════════════════════════════════
-const theoretic=(BOP_SEED+totalCollecte)-totalEquity;
-const diff=Math.abs(remaining-theoretic);
-const ok=diff<1000;
-document.getElementById('verCards').innerHTML=[
-  {l:'Entrées totales (Seed + Collecte)',v:fmtM2(BOP_SEED+totalCollecte),n:`Seed ${fmtM2(BOP_SEED)}  +  Collecte ${fmtM2(totalCollecte)}`,c:''},
-  {l:'Equity immo (Acq − Dette)',v:fmtM2(totalEquity),n:`Acq ${fmtM2(totalAcq)}  −  Dette ${fmtM2(totalDette)}`,c:'pos'},
-  {l:ok?'✓  Résidu = File réelle':'✗  Écart détecté',v:fmtM2(remaining),n:`Théorique ${fmtM2(theoretic)}  ·  Écart ${fmtM2(diff)}`,c:ok?'bok':'bko'},
-].map(c=>`<div class="vc"><div class="vcl">${c.l}</div><div class="vcv ${c.c}">${c.v}</div><div class="vcn">${c.n}</div></div>`).join('');
-
-new Chart(document.getElementById('cBal'),{
-  type:'line',
-  data:{labels:months,datasets:[
-    {label:'EOP comptable',data:raw.map(d=>d.eop),borderColor:'rgba(180,180,180,.4)',borderDash:[4,3],borderWidth:1.5,pointRadius:3,pointBackgroundColor:'rgba(180,180,180,.4)',tension:.3},
-    {label:'File FIFO',data:snaps.map(q=>q.reduce((s,b)=>s+b.amount,0)),borderColor:'rgba(240,165,0,.7)',borderWidth:1.5,pointRadius:3,pointBackgroundColor:'rgba(240,165,0,.7)',tension:.3},
-    {label:'BOP',data:raw.map(d=>d.bop),borderColor:'rgba(102,153,187,.4)',borderDash:[2,4],borderWidth:1,pointRadius:2,tension:.3},
-  ]},
-  options:{responsive:true,plugins:{
-    legend:{labels:{boxWidth:7,padding:10,color:'#555',font:{size:9}}},
-    tooltip:{...tip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtM2(ctx.raw)}`}}
-  },scales:{x:{grid:grd,ticks:{color:'#444',maxRotation:0}},y:{grid:grd,ticks:{callback:v=>fmtM(v),color:'#444'}}}}
-});
+const _init={};
+function initPanel(id){
+  if(id!=='jouissance')return;
+  // % drag per month
+  chartI['cJouPct']=new Chart(document.getElementById('cJouPct'),{
+    type:'bar',
+    data:{labels:months,datasets:[{
+      label:'% drag',data:jouSnaps.map(d=>parseFloat(d.pct.toFixed(1))),
+      backgroundColor:jouSnaps.map(d=>d.pct>30?'rgba(224,80,80,.8)':d.pct>5?'rgba(240,165,0,.7)':'rgba(120,120,120,.25)'),
+      borderRadius:3,borderWidth:0,
+    }]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...mkTip(),callbacks:{label:x=>` ${x.raw.toFixed(1)}% de la file âgée ≥3 mois`}}},
+      scales:{x:{grid:grd(),ticks:tkC()},y:{grid:grd(),max:100,ticks:{...tkC(),callback:v=>v+'%'}}}}
+  });
+  // stacked 100% ok vs drag
+  chartI['cJouStack']=new Chart(document.getElementById('cJouStack'),{
+    type:'bar',
+    data:{labels:months,datasets:[
+      {label:'< 3 mois',data:jouSnaps.map(d=>parseFloat((d.nw/d.tot*100||0).toFixed(1))),backgroundColor:'rgba(76,175,125,.45)',borderColor:'rgba(76,175,125,.7)',borderWidth:1,stack:'s'},
+      {label:'≥ 3 mois (drag)',data:jouSnaps.map(d=>parseFloat(d.pct.toFixed(1))),backgroundColor:'rgba(224,80,80,.6)',borderColor:'rgba(224,80,80,.85)',borderWidth:1,stack:'s'},
+    ]},
+    options:{responsive:true,plugins:{legend:{labels:lgC()},tooltip:{...mkTip(),callbacks:{label:x=>` ${x.dataset.label}: ${x.raw.toFixed(1)}%`}}},
+      scales:{x:{grid:grd(),stacked:true,ticks:tkC()},y:{grid:grd(),stacked:true,max:100,ticks:{...tkC(),callback:v=>v+'%'}}}}
+  });
+  // delay bars vs 90J
+  chartI['cJouDelay']=new Chart(document.getElementById('cJouDelay'),{
+    type:'bar',
+    data:{labels:months,datasets:[{
+      label:'Délai FIFO',data:res.map(r=>r.avgD),
+      backgroundColor:res.map(r=>r.avgD==null?'rgba(120,120,120,.25)':r.avgD<90?'rgba(76,175,125,.75)':'rgba(224,80,80,.75)'),
+      borderRadius:3,borderWidth:0,
+    }]},
+    plugins:[{id:'l90j',afterDraw(c){
+      const{ctx,scales:{y,x}}=c,yp=y.getPixelForValue(90);
+      ctx.save();ctx.beginPath();ctx.moveTo(x.left,yp);ctx.lineTo(x.right,yp);
+      ctx.strokeStyle='rgba(240,165,0,.8)';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);ctx.stroke();
+      ctx.fillStyle=isDark?'rgba(240,165,0,.7)':'rgba(140,90,0,.85)';ctx.font='9px IBM Plex Mono,monospace';
+      ctx.fillText('90J',x.right-28,yp-4);ctx.restore();
+    }}],
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...mkTip(),callbacks:{label:x=>x.raw==null?' —':` ${x.raw}J`}}},
+      scales:{x:{grid:grd(),ticks:tkC()},y:{grid:grd(),suggestedMax:150,ticks:{...tkC(),callback:v=>v+'J'}}}}
+  });
+  // cumul % moyen
+  let cum=0;const cumP=jouSnaps.map((d,i)=>{cum+=d.pct;return parseFloat((cum/(i+1)).toFixed(1));});
+  chartI['cJouCumul']=new Chart(document.getElementById('cJouCumul'),{
+    type:'line',
+    data:{labels:months,datasets:[
+      {label:'% moyen cumulé',data:cumP,borderColor:'rgba(224,80,80,.85)',backgroundColor:'rgba(224,80,80,.1)',borderWidth:2,pointRadius:4,fill:true,tension:.35,pointBackgroundColor:'rgba(224,80,80,.85)'},
+      {label:'0%',data:months.map(()=>0),borderColor:'rgba(76,175,125,.3)',borderDash:[4,4],borderWidth:1,pointRadius:0},
+    ]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...mkTip(),callbacks:{label:x=>` ${x.raw.toFixed(1)}% moyen`}}},
+      scales:{x:{grid:grd(),ticks:tkC()},y:{grid:grd(),ticks:{...tkC(),callback:v=>v+'%'}}}}
+  });
+}
 
 // ══════════════════════════════════════════════════════════════
 // NAV
 // ══════════════════════════════════════════════════════════════
 function sw(id,btn){
   document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   document.getElementById('pnl-'+id).classList.add('active');
   btn.classList.add('active');
   document.getElementById('scroll').scrollTop=0;
+  if(!_init[id]){_init[id]=true;initPanel(id);}
 }
 </script>
 
