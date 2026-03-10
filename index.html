@@ -112,26 +112,31 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospac
 
 /* ── GANTT TOOLTIP ── */
 .g-tip{
-position:fixed;left:50%;transform:translateX(-50%);
-background:var(–nav-bg);border:1px solid var(–border);
-border-radius:4px;padding:12px 14px;z-index:200;
-min-width:220px;max-width:290px;
-box-shadow:0 4px 24px rgba(0,0,0,.35);
-pointer-events:none;transition:opacity .15s;
+position:fixed;left:14px;right:14px;
+background:#111;border:1px solid #333;
+border-radius:6px;padding:14px 14px 12px;z-index:300;
+box-shadow:0 8px 32px rgba(0,0,0,.7);
+pointer-events:all;
+transition:opacity .15s,transform .15s;
 }
-.g-tip.hidden{opacity:0;pointer-events:none}
+[data-theme=“light”] .g-tip{background:#fff;border-color:#ccc;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+.g-tip.hidden{opacity:0;pointer-events:none;transform:translateY(6px)}
+[data-theme=“light”] .g-tip .g-tip-lbl{color:#111}
+[data-theme=“light”] .g-tip .g-tip-key{color:#aaa}
+[data-theme=“light”] .g-tip .g-tip-val{color:#222}
 .g-tip-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
-.g-tip-lbl{font-family:‘IBM Plex Sans’,sans-serif;font-size:13px;font-weight:600;color:var(–white)}
-.g-tip-sub{font-size:8px;color:var(–t2);text-transform:uppercase;letter-spacing:.08em}
-.g-tip-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.g-tip-key{font-size:9px;color:var(–t3);text-transform:uppercase;letter-spacing:.08em}
-.g-tip-val{font-size:11px;font-weight:500;color:var(–text)}
+.g-tip-lbl{font-family:‘IBM Plex Sans’,sans-serif;font-size:13px;font-weight:600;color:#ebebeb}
+.g-tip-sub{font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.08em}
+.g-tip-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.g-tip-key{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.08em}
+.g-tip-val{font-size:11px;font-weight:500;color:#c8c8c8}
 /* Sparkline inside tooltip */
-.g-spark{display:flex;align-items:flex-end;gap:2px;height:28px;margin-top:10px;padding-top:8px;border-top:1px solid var(–border)}
-.g-spark-bar{flex:1;border-radius:1px;min-height:2px;transition:height .2s}
-.g-spark-lbl{display:flex;justify-content:space-between;margin-top:3px}
-.g-spark-ml{font-size:7px;color:var(–t3);flex:1;text-align:center}
-.g-tip-close{font-size:16px;color:var(–t3);cursor:pointer;pointer-events:all;line-height:1;padding:2px 0 2px 8px}
+.g-spark{display:flex;align-items:flex-end;gap:2px;height:30px;margin-top:10px;padding-top:8px;border-top:1px solid #222}
+[data-theme=“light”] .g-spark{border-top-color:#ddd}
+.g-spark-bar{flex:1;border-radius:1px;min-height:2px}
+.g-spark-lbl{display:flex;margin-top:3px}
+.g-spark-ml{font-size:7px;color:#444;flex:1;text-align:center}
+.g-tip-close{font-size:18px;color:#555;cursor:pointer;line-height:1;padding:0 0 2px 10px}
 </style>
 
 </head>
@@ -497,10 +502,14 @@ const ganttData=(()=>{
       return `<div class="g-spark-ml" style="${isCur?'color:var(--white);font-weight:600':''}">${activeMths[i]}</div>`;
     }).join('');
 
-    // Position: center of screen, top third
+    // Position: below tapped element if space, else above
     const tip=document.getElementById('gTip');
-    tip.style.top='72px';
     tip.classList.remove('hidden');
+    const rect=el.getBoundingClientRect();
+    const tipH=tip.offsetHeight||220;
+    const below=rect.bottom+12;
+    const above=rect.top-tipH-12;
+    tip.style.top=(below+tipH<window.innerHeight-60?below:Math.max(70,above))+'px';
   }
 
   function closeGTip(){
